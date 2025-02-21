@@ -1,0 +1,8 @@
+[submodule "CIRP CMMO 2025 "]
+    path = CIRP CMMO 2025 
+	url = https://git@git.overleaf.com/6789129eb9d9e15a5cee3ee1
+    ignore = all
+[submodule "utils"]
+    path = utils 
+    url = git@github.com:mingwucn/utils.git
+    ignore = all
