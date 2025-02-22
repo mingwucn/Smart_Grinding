@@ -1,9 +1,9 @@
-Code for the paper *Data-Driven Approach to Mitigate Acoustic Sensor Positioning Effects in LPBF*
+Code for the Smart Grinding
 
 ## Subfolder
-- CIRP CMMO 2025
+- [Paper] Contextual Grinding
 ```
-git clone https://git@git.overleaf.com/6789129eb9d9e15a5cee3ee1 "CIRP CMMO 2025"
+git clone https://git@git.overleaf.com/67b9c453358700f01df35699 "Contextual Grinding"
 ```
 - utils
 ```
@@ -11,7 +11,7 @@ git clone git@github.com:mingwucn/utils.git "utils"
 ```
 
 ## Preprocessing
-Every files including cycle definition. 
+Read data: ``ReadData.ipynb``
 
 ## DTW
 - DTW.ipynb
