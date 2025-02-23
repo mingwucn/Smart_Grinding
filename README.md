@@ -13,8 +13,8 @@ git clone git@github.com:mingwucn/utils.git "utils"
 ## Preprocessing
 Read data: ``ReadData.ipynb``
 
-## DTW
+## 
 - DTW.ipynb
 
-## Hierarchical clustering
+## 
 - Hierarchy.ipynb
