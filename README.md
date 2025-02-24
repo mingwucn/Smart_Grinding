@@ -1,8 +1,15 @@
 ---
-tag: project/smart_grinding
+tag: 
+  - Manufacturing/Grinding
+  - project/Smart_Grinding
+type: git repository
+setup: 
+    - numpy scipy natsort matplotlib seaborn Pillow opencv-python dask tqdm pandas scienceplots librosa scikit-learn nptdms zmq jupyter openpyxl
+    - torchvision torch torchaudio 
+    - torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cu121
+---
 ---
 Code for the Smart Grinding
-
 ## Subfolder
 - [Paper] Grinding Fusion
 ```
