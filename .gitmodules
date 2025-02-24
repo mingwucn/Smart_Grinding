@@ -1,7 +1,13 @@
-[submodule "Contextual Grinding "]
+[submodule "Contextual Grinding"]
     path = Contextual Grinding
 	url = https://git@git.overleaf.com/67b9c453358700f01df35699
     ignore = all
+
+[submodule "Grinding Fusion"]
+    path = Grinding Fusion
+	url = https://git@git.overleaf.com/67b9c453358700f01df35699
+    ignore = all
+
 [submodule "utils"]
     path = utils 
     url = git@github.com:mingwucn/utils.git
