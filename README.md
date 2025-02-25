@@ -13,7 +13,7 @@ Code for the Smart Grinding
 ## Subfolder
 - [Paper] Grinding Fusion
 ```
-git clone https://git@git.overleaf.com/67bc423e3e17261c3b4e1197
+git clone https://git@git.overleaf.com/67bc423e3e17261c3b4e1197 "Grinding Fusion"
 ```
 
 - [Paper] Contextual Grinding
