@@ -86,11 +86,12 @@ class GrindingData:
         self.sampling_rate_vib = 51.2 * 1e3
         self.project_dir = project_dir
 
-        self.n_fft = 512
-        self.hop_length = self.n_fft // 8
+        self.n_fft = 1024
+        self.n_fft_vib = 512
+        self.hop_length = self.n_fft // 2
+        self.hop_length_vib = self.n_fft_vib // 2
         self.window_type = "hann"
         self.mel_bins = 256
-        self.n_fft_vib = 512
         self._load_ae_names()
         self._load_parameters()
         self._load_surface_roughness()
@@ -175,7 +176,7 @@ class GrindingData:
         env_kurtosis_list_y = []
         env_kurtosis_list_z = []
         mag_list = []
-        print(f"Processing {ae_name}")
+        # print(f"Processing {ae_name}")
         _fn = os.path.split(ae_name)[1].split(".")[0]
         p_n = int(_fn.split("-")[0]) - 1
 
@@ -233,14 +234,14 @@ class GrindingData:
                 hop_length=self.hop_length,
                 window_type=self.window_type,
             )
-            spec_ae = np.stack([spec_narrow, spec_broad], axis=0)
+            spec_ae = np.stack([spec_narrow[:300,:], spec_broad[:300,:]], axis=0)
 
             spec_vib_x = logSpectrogram(
                 data=_data_vib_x,
                 sampling_rate=self.sampling_rate_vib,
                 display=False,
                 n_fft=self.n_fft_vib,
-                hop_length=self.n_fft_vib // 8,
+                hop_length=self.hop_length_vib,
                 window_type=self.window_type,
             )
             spec_vib_y = logSpectrogram(
@@ -248,7 +249,7 @@ class GrindingData:
                 sampling_rate=self.sampling_rate_vib,
                 display=False,
                 n_fft=self.n_fft_vib,
-                hop_length=self.n_fft_vib // 8,
+                hop_length=self.hop_length_vib,
                 window_type=self.window_type,
             )
             spec_vib_z = logSpectrogram(
@@ -256,7 +257,7 @@ class GrindingData:
                 sampling_rate=self.sampling_rate_vib,
                 display=False,
                 n_fft=self.n_fft_vib,
-                hop_length=self.n_fft_vib // 8,
+                hop_length=self.hop_length_vib,
                 window_type=self.window_type,
             )
 
