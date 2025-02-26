@@ -142,9 +142,13 @@ class GrindingData:
                 for ae_name in self.ae_names
             ]
 
+            # Wait for all tasks to complete
+            for future in futures:
+                future.result()  # Ensures all tasks are completed
+
             # Use tqdm to show progress
-            for _ in tqdm(futures, total=len(self.ae_names), desc="Processing files"):
-                pass  # Wait for each task to complete
+            # for _ in tqdm(futures, total=len(self.ae_names), desc="Processing files"):
+            #     pass  # Wait for each task to complete
 
     def _process_file(self, ae_name: str):
         spec_ae_list = []
@@ -184,10 +188,10 @@ class GrindingData:
         vib_indices = slice_indices(len(vib_x), int(self.sampling_rate_vib * 0.1), 0.5)
         window_n = min(len(vib_indices) * 10, len(ae_indices))
 
-        for idx in (range(window_n)):
+        for idx in range(window_n):
             print(f"Processing {idx}/{window_n} for {ae_name}")
             _i0, _it = ae_indices[idx]
-            _i0_vib, _it_vib = vib_indices[int(idx//10)]
+            _i0_vib, _it_vib = vib_indices[int(idx // 10)]
 
             _data_vib_x = np.array(vib_x[_i0_vib:_it_vib])
             _data_vib_y = np.array(vib_y[_i0_vib:_it_vib])
