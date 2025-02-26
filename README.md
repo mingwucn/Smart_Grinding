@@ -4,7 +4,7 @@ tag:
   - project/Smart_Grinding
 type: git repository
 setup: 
-    - numpy scipy natsort matplotlib seaborn Pillow opencv-python dask tqdm pandas scienceplots librosa scikit-learn nptdms zmq jupyter openpyxl PyWavelets
+    - numpy scipy natsort matplotlib seaborn Pillow opencv-python dask tqdm pandas scienceplots librosa scikit-learn nptdms zmq jupyter openpyxl PyWavelets dill
     - torchvision torch torchaudio 
     - torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cu121
 ---
