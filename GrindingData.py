@@ -184,6 +184,7 @@ class GrindingData:
         vib_z = vib_data[0].channels()[2].data[:]
 
         ae_df = pd.read_csv(self.ae_names[0], sep="\s", header=None, engine="python")
+        print(f"AE data shape: {ae_df.shape}")
         ae_indices = slice_indices(len(ae_df), int(self.sampling_rate_ae * 0.01), 0.5)
         vib_indices = slice_indices(len(vib_x), int(self.sampling_rate_vib * 0.1), 0.5)
         window_n = min(len(vib_indices) * 10, len(ae_indices))
