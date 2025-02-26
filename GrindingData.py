@@ -96,7 +96,7 @@ class GrindingData:
         self._load_surface_roughness()
 
     def _load_parameters(self):
-        df = pd.read_excel(os.path.join(project_dir, "parameters.xlsx"), index_col=0)
+        df = pd.read_excel(os.path.join(self.project_dir, "parameters.xlsx"), index_col=0)
         df.columns = ["Surface speed", "Workpiece rotation speed", "Grinding depth"]
         df["Surface speed"] = (
             df["Surface speed"].str.extract(r"(\d+)").astype(float)
@@ -323,7 +323,7 @@ class GrindingData:
 
     def _save_data(self, data, filename: str, save_dir: str = None):
         if save_dir is None:
-            save_dir = os.path.join(self., "intermediate")
+            save_dir = os.path.join(self.project_dir, "intermediate")
             # save_dir = os.path.join(os.getcwd(), "intermediate")
         if not os.path.exists(save_dir):
             os.makedirs(save_dir)
