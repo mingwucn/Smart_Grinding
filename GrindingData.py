@@ -183,14 +183,14 @@ class GrindingData:
         vib_y = vib_data[0].channels()[1].data[:]
         vib_z = vib_data[0].channels()[2].data[:]
 
-        ae_df = pd.read_csv(self.ae_names[0], sep="\s", header=None, engine="python")
+        ae_df = pd.read_csv(ae_name, sep="\s", header=None, engine="python")
         print(f"AE data shape: {ae_df.shape}")
         ae_indices = slice_indices(len(ae_df), int(self.sampling_rate_ae * 0.01), 0.5)
         vib_indices = slice_indices(len(vib_x), int(self.sampling_rate_vib * 0.1), 0.5)
         window_n = min(len(vib_indices) * 10, len(ae_indices))
 
         for idx in range(window_n):
-            print(f"Processing {idx}/{window_n} for {ae_name}")
+            # print(f"Processing {idx}/{window_n} for {ae_name}")
             _i0, _it = ae_indices[idx]
             _i0_vib, _it_vib = vib_indices[int(idx // 10)]
 
@@ -271,8 +271,8 @@ class GrindingData:
             env_kurtosis_list_y.append(vib_info["y_env_kurtosis"])
             env_kurtosis_list_z.append(vib_info["z_env_kurtosis"])
             mag_list.append(vib_info["mag_mesh_amp"])
-
-        gc.collect()
+            del _data_narrow, _data_broad, _data_vib_x, _data_vib_y, _data_vib_z
+            gc.collect()
 
         spec_ae = np.stack(spec_ae_list, axis=0)
         spec_vib = np.stack(spec_vib_list, axis=0)
@@ -322,6 +322,20 @@ class GrindingData:
 
 if __name__ == "__main__":
     import time
+    # add arguments to the script
+    import argparse
+    import json
+    import os
+
+    parser = argparse.ArgumentParser(description="Grinding data processing")
+    parser.add_argument(
+        "--threads",
+        type=int,
+        default=1,
+        help="Number of threads to use for parallel processing",
+    )
+    args = parser.parse_args()
+    print(f"Number of threads: {args.threads}")
 
     start_time = time.time()
     alphabet = list(string.ascii_lowercase)
@@ -340,7 +354,10 @@ if __name__ == "__main__":
     dataDir_ae = os.path.join(project_dir, "AE")
     dataDir_vib = os.path.join(project_dir, "Vibration")
     grinding_data = GrindingData(project_dir)
-    grinding_data._construct_data_mp(num_threads=6)
+    if args.threads == 1:
+        grinding_data._construct_data()
+    else:
+        grinding_data._construct_data_mp(num_threads=args.threads)
     # intermediate_dir = os.path.join(project_dir, "intermediate")
     # print(f"Saving data to {intermediate_dir}")
     # if not os.path.exists(intermediate_dir):
