@@ -7,7 +7,7 @@ from fusion import (
     process_triaxial_vib,
 )
 
-from concurrent.futures import ThreadPoolExecutor
+from concurrent.futures import ThreadPoolExecutor, as_completed
 import numpy as np
 import pandas as pd
 import matplotlib
@@ -142,13 +142,23 @@ class GrindingData:
                 for ae_name in self.ae_names
             ]
 
-            # Wait for all tasks to complete
-            for future in futures:
-                future.result()  # Ensures all tasks are completed
+            # # Wait for all tasks to complete
+            # for future in futures:
+            #     future.result()  # Ensures all tasks are completed
 
-            # Use tqdm to show progress
-            # for _ in tqdm(futures, total=len(self.ae_names), desc="Processing files"):
-            #     pass  # Wait for each task to complete
+            # Add tqdm progress bar
+            with tqdm(
+                total=len(futures),
+                desc="Total Progress",
+                unit="file",
+                dynamic_ncols=True,
+            ) as pbar:
+                # Update progress as each future completes
+                for future in as_completed(futures):
+                    future.result()  # Ensure completion
+                    pbar.update(1)  # Increment progress bar
+
+            print("All files processed")
 
     def _process_file(self, ae_name: str):
         spec_ae_list = []
@@ -188,8 +198,12 @@ class GrindingData:
         ae_indices = slice_indices(len(ae_df), int(self.sampling_rate_ae * 0.01), 0.5)
         vib_indices = slice_indices(len(vib_x), int(self.sampling_rate_vib * 0.1), 0.5)
         window_n = min(len(vib_indices) * 10, len(ae_indices))
+        ae_narrow = ae_df[0]
+        ae_broad = ae_df[1]
+        del ae_df, vib_data
+        gc.collect()
 
-        for idx in range(window_n):
+        for idx in tqdm(range(window_n)):
             # print(f"Processing {idx}/{window_n} for {ae_name}")
             _i0, _it = ae_indices[idx]
             _i0_vib, _it_vib = vib_indices[int(idx // 10)]
@@ -198,10 +212,10 @@ class GrindingData:
             _data_vib_y = np.array(vib_y[_i0_vib:_it_vib])
             _data_vib_z = np.array(vib_z[_i0_vib:_it_vib])
 
-            _data_narrow = np.array(ae_df[0][_i0:_it])
-            _data_broad = np.array(ae_df[1][_i0:_it])
-            ae_info_narrow = process_ae(ae_df[0][_i0:_it], self.sampling_rate_ae)
-            ae_info_broad = process_ae(ae_df[1][_i0:_it], self.sampling_rate_ae)
+            _data_narrow = np.array(ae_narrow[_i0:_it])
+            _data_broad = np.array(ae_broad[_i0:_it])
+            ae_info_narrow = process_ae(_data_narrow, self.sampling_rate_ae)
+            ae_info_broad = process_ae(_data_broad, self.sampling_rate_ae)
             spec_narrow = logSpectrogram(
                 data=_data_narrow,
                 sampling_rate=self.sampling_rate_ae,
@@ -271,8 +285,8 @@ class GrindingData:
             env_kurtosis_list_y.append(vib_info["y_env_kurtosis"])
             env_kurtosis_list_z.append(vib_info["z_env_kurtosis"])
             mag_list.append(vib_info["mag_mesh_amp"])
-            del _data_narrow, _data_broad, _data_vib_x, _data_vib_y, _data_vib_z
-            gc.collect()
+            # del _data_narrow, _data_broad, _data_vib_x, _data_vib_y, _data_vib_z
+            # gc.collect()
 
         spec_ae = np.stack(spec_ae_list, axis=0)
         spec_vib = np.stack(spec_vib_list, axis=0)
@@ -322,6 +336,7 @@ class GrindingData:
 
 if __name__ == "__main__":
     import time
+
     # add arguments to the script
     import argparse
     import json
@@ -331,7 +346,7 @@ if __name__ == "__main__":
     parser.add_argument(
         "--threads",
         type=int,
-        default=1,
+        default=6,
         help="Number of threads to use for parallel processing",
     )
     args = parser.parse_args()
