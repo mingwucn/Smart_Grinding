@@ -131,12 +131,12 @@ class GrindingData:
             vib_y = vib_data[0].channels()[1].data[:]
             vib_z = vib_data[0].channels()[2].data[:] 
 
-            ae_df = pd.read_csv(self.ae_names[0],sep='\s',header=None)
+            ae_df = pd.read_csv(self.ae_names[0],sep='\s',header=None,engine="python")
             ae_indices = slice_indices(len(ae_df),int(self.sampling_rate_ae*0.01),0.5)
             vib_indices = slice_indices(len(vib_x),int(self.sampling_rate_vib*0.1),0.5)
             window_n = min(len(vib_indices)*10,len(ae_indices))
 
-            for idx in range(window_n):
+            for idx in tqdm(range(window_n)):
                 _i0,_it = ae_indices[idx]
                 _i0_vib,_it_vib = vib_indices[idx]
 
@@ -178,6 +178,7 @@ class GrindingData:
                 env_kurtosis_list_z.append(vib_info['z_env_kurtosis'])
                 mag_list.append(vib_info['mag_mesh_amp'])
 
+            gc.collect()
         self.spec_ae = np.stack(spec_ae_list,axis=0)
         self.spec_vib = np.stack(spec_vib_list,axis=0)
         self.wavelet_energy_narrow = np.stack(wavelet_energy_narrow_list,axis=0)
@@ -192,7 +193,7 @@ class GrindingData:
         self.env_kurtosis_z = np.stack(env_kurtosis_list_z,axis=0)
         self.mag = np.stack(mag_list,axis=0)
 
-if __name__=="main":
+if __name__ == "__main__":
     import time
     start_time = time.time()
     alphabet = list(string.ascii_lowercase)
@@ -214,9 +215,10 @@ if __name__=="main":
     grinding_data = GrindingData(project_dir)
     grinding_data._construct_data()
     intermediate_dir = os.path.join(project_dir,"intermediate")
+    print(f"Saving data to {intermediate_dir}")
     if not os.path.exists(intermediate_dir):
         os.makedirs(intermediate_dir)
-    pikle.dump(grinding_data,open(os.path.join(intermediate_dir,"grinding_data.pikle"),"wb"))
+    pikle.dump(grinding_data,open(os.path.join(intermediate_dir,"grinding_data.pkl"),"wb"))
     print("Data has been successfully loaded and saved to disk.")
     print(f"Time taken: {time.time()-start_time:.2f} seconds")
     print(f"Total data amount: {grinding_data.ec.shape[0]}")
