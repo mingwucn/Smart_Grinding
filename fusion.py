@@ -79,3 +79,18 @@ def process_ae(ae_signal, fs=4e6):
     burst_rate = len(peaks) / (len(ae_signal) / fs)
 
     return {"wavelet_energy": wavelet_energy, "burst_rate": burst_rate}
+
+def process_triaxial_vib(vib_x, vib_y, vib_z, v_s, fs=51.2e3):
+    features = {}
+    # Axis-specific envelope kurtosis
+    for axis, sig in zip(['x', 'y', 'z'], [vib_x, vib_y, vib_z]):
+        analytic = hilbert(sig)
+        envelope = np.abs(analytic)
+        features[f'{axis}_env_kurtosis'] = np.mean((envelope - envelope.mean())**4) / (envelope.std()**4)
+    
+    # Dominant axis via vector magnitude
+    vec_mag = np.sqrt(vib_x**2 + vib_y**2 + vib_z**2)
+    f, Pxx = welch(vec_mag, fs, nperseg=1024)
+    features['mag_mesh_amp'] = np.max(Pxx[(f > 400) & (f < 800)])  # CBN meshing band
+    
+    return features
