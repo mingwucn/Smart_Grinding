@@ -4,7 +4,7 @@ tag:
   - project/Smart_Grinding
 type: git repository
 setup: 
-    - numpy scipy natsort matplotlib seaborn Pillow opencv-python dask tqdm pandas scienceplots librosa scikit-learn nptdms zmq jupyter openpyxl
+    - numpy scipy natsort matplotlib seaborn Pillow opencv-python dask tqdm pandas scienceplots librosa scikit-learn nptdms zmq jupyter openpyxl PyWavelets
     - torchvision torch torchaudio 
     - torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cu121
 ---
@@ -28,6 +28,8 @@ git clone git@github.com:mingwucn/utils.git "utils"
 
 ## Preprocessing
 Read data: ``ReadData.ipynb``
+Physical data embedded: ``Physical_informed.ipynb``
+Signal feature extraction: ``Signal_extraction.ipynb``
 
 ## 
 - DTW.ipynb
