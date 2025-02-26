@@ -84,6 +84,7 @@ class GrindingData:
         print(f"Vibration data directory: {self.dataDir_vib}")
         self.sampling_rate_ae = 4 * 1e6
         self.sampling_rate_vib = 51.2 * 1e3
+        self.project_dir = project_dir
 
         self.n_fft = 512
         self.hop_length = self.n_fft // 8
@@ -111,7 +112,7 @@ class GrindingData:
 
     def _load_surface_roughness(self):
         df = pd.read_csv(
-            os.path.join(project_dir, "surface roughness.csv"), index_col=None
+            os.path.join(self.project_dir, "surface roughness.csv"), index_col=None
         )
         df.columns = ["Surface roughness"]
         self.sr = df.iloc[:, 0].to_numpy()
@@ -322,7 +323,8 @@ class GrindingData:
 
     def _save_data(self, data, filename: str, save_dir: str = None):
         if save_dir is None:
-            save_dir = os.path.join(os.getcwd(), "intermediate")
+            save_dir = os.path.join(self., "intermediate")
+            # save_dir = os.path.join(os.getcwd(), "intermediate")
         if not os.path.exists(save_dir):
             os.makedirs(save_dir)
         print("Saving data to", os.path.join(save_dir, f"{filename}.pkl"))
