@@ -135,7 +135,7 @@ class GrindingData:
             num_threads = os.cpu_count()
 
         # Use ThreadPoolExecutor to run _process_file in parallel
-        with ThreadPoolExecutor() as executor:
+        with ThreadPoolExecutor(max_workers=num_threads) as executor:
             # Submit tasks to the executor
             futures = [
                 executor.submit(self._process_file, ae_name)
@@ -339,7 +339,7 @@ if __name__ == "__main__":
     dataDir_ae = os.path.join(project_dir, "AE")
     dataDir_vib = os.path.join(project_dir, "Vibration")
     grinding_data = GrindingData(project_dir)
-    grinding_data._construct_data_mp(num_threads=4)
+    grinding_data._construct_data_mp(num_threads=6)
     # intermediate_dir = os.path.join(project_dir, "intermediate")
     # print(f"Saving data to {intermediate_dir}")
     # if not os.path.exists(intermediate_dir):
