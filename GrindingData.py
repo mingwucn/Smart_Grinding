@@ -532,12 +532,13 @@ if __name__ == "__main__":
     )
     parser.add_argument(
         "--type",
-        type=str,
+        process_type=str,
         default='physics',
         help="Process type. physics or spec",
     )
     args = parser.parse_args()
     print(f"Number of threads: {args.threads}")
+    print(f"Process type: {args.process_type}")
 
     start_time = time.time()
     alphabet = list(string.ascii_lowercase)
@@ -559,7 +560,7 @@ if __name__ == "__main__":
     if args.threads == 1:
         grinding_data._construct_data()
     else:
-        grinding_data._construct_data_mp(num_threads=args.threads)
+        grinding_data._construct_data_mp(num_threads=args.threads,process_type=args.process_type)
     # intermediate_dir = os.path.join(project_dir, "intermediate")
     # print(f"Saving data to {intermediate_dir}")
     # if not os.path.exists(intermediate_dir):
