@@ -203,10 +203,11 @@ class GrindingData:
         ae_indices = slice_indices(len(_data_narrow), int(self.sampling_rate_ae * 0.01), 0.5)
         vib_indices = slice_indices(len(vib_x), int(self.sampling_rate_vib * 0.1), 0.5)
         window_n = min(len(vib_indices) * 10, len(ae_indices))
+        print(f"window number:{window_n} for {ae_name}")
         # ae_narrow = ae_df[0]
         # ae_broad = ae_df[1]
-        # del ae_df, vib_data
-        # gc.collect()
+        del vib_data
+        gc.collect()
 
         for idx in tqdm(range(window_n)):
             # print(f"Processing {idx}/{window_n} for {ae_name}")
