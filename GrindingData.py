@@ -531,8 +531,8 @@ if __name__ == "__main__":
         help="Number of threads to use for parallel processing",
     )
     parser.add_argument(
-        "--type",
-        process_type=str,
+        "--process_type",
+        type=str,
         default='physics',
         help="Process type. physics or spec",
     )
