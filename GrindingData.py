@@ -127,9 +127,12 @@ class GrindingData:
             ]
         )
 
-    def _construct_data(self):
+    def _construct_data(self, process_type="physics"):
         for ae_name in tqdm(self.ae_names):
-            self._process_file(ae_name)
+            if process_type == "physics":
+                self._process_file_physic(ae_name)
+            elif process_type == "spec":
+                self._process_file_spec(ae_name)
 
     def _construct_data_mp(self, num_threads=None,process_type="physics"):
         # Use the number of CPU cores if num_threads is not specified
@@ -144,12 +147,11 @@ class GrindingData:
                     executor.submit(self._process_file_physic, ae_name)
                     for ae_name in self.ae_names
                 ]
-            else:
+            elif process_type == "spec":
                 futures = [
                     executor.submit(self._process_file_spec, ae_name)
                     for ae_name in self.ae_names
                 ]
-                
 
             # # Wait for all tasks to complete
             # for future in futures:
@@ -203,7 +205,7 @@ class GrindingData:
         vib_z = vib_data[0].channels()[2].data[:]
 
         ae_df = pd.read_csv(ae_name, sep="\s", header=None, engine="python")
-        print(f"AE data shape: {ae_df.shape}")
+        print(f"[P] AE data shape: {ae_df.shape}")
         # ae_narrow = np.loadtxt(ae_name, usecols=0, dtype=np.float32)  
         # ae_broad = np.loadtxt(ae_name, usecols=1, dtype=np.float32)
 
@@ -364,7 +366,7 @@ class GrindingData:
         vib_z = vib_data[0].channels()[2].data[:]
 
         ae_df = pd.read_csv(ae_name, sep="\s", header=None, engine="python")
-        print(f"AE data shape: {ae_df.shape}")
+        print(f"[S] AE data shape: {ae_df.shape}")
         # ae_narrow = np.loadtxt(ae_name, usecols=0, dtype=np.float32)  
         # ae_broad = np.loadtxt(ae_name, usecols=1, dtype=np.float32)
 
@@ -558,7 +560,7 @@ if __name__ == "__main__":
     dataDir_vib = os.path.join(project_dir, "Vibration")
     grinding_data = GrindingData(project_dir)
     if args.threads == 1:
-        grinding_data._construct_data()
+        grinding_data._construct_data(process_type=args.process_type)
     else:
         grinding_data._construct_data_mp(num_threads=args.threads,process_type=args.process_type)
     # intermediate_dir = os.path.join(project_dir, "intermediate")
