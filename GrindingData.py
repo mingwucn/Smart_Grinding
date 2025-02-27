@@ -195,15 +195,18 @@ class GrindingData:
         vib_y = vib_data[0].channels()[1].data[:]
         vib_z = vib_data[0].channels()[2].data[:]
 
-        ae_df = pd.read_csv(ae_name, sep="\s", header=None, engine="python")
-        print(f"AE data shape: {ae_df.shape}")
-        ae_indices = slice_indices(len(ae_df), int(self.sampling_rate_ae * 0.01), 0.5)
+        # ae_df = pd.read_csv(ae_name, sep="\s", header=None, engine="python")
+        # print(f"AE data shape: {ae_df.shape}")
+        ae_narrow = np.loadtxt(ae_name, usecols=0, dtype=np.float32)  
+        ae_broad = np.loadtxt(ae_name, usecols=1, dtype=np.float32)
+
+        ae_indices = slice_indices(len(_data_narrow), int(self.sampling_rate_ae * 0.01), 0.5)
         vib_indices = slice_indices(len(vib_x), int(self.sampling_rate_vib * 0.1), 0.5)
         window_n = min(len(vib_indices) * 10, len(ae_indices))
-        ae_narrow = ae_df[0]
-        ae_broad = ae_df[1]
-        del ae_df, vib_data
-        gc.collect()
+        # ae_narrow = ae_df[0]
+        # ae_broad = ae_df[1]
+        # del ae_df, vib_data
+        # gc.collect()
 
         for idx in tqdm(range(window_n)):
             # print(f"Processing {idx}/{window_n} for {ae_name}")
@@ -322,7 +325,7 @@ class GrindingData:
         }
         self._save_data(data, _fn)
 
-    def _save_data(self, data, filename: str, save_dir: str = None):
+    def _save_data_pkl(self, data, filename: str, save_dir: str = None):
         if save_dir is None:
             save_dir = os.path.join(self.project_dir, "intermediate")
             # save_dir = os.path.join(os.getcwd(), "intermediate")
@@ -336,6 +339,27 @@ class GrindingData:
             "MB",
         )
 
+    def _save_data(self, data, filename: str, save_dir: str = None):
+        if save_dir is None:
+            save_dir = os.path.join(self.project_dir, "intermediate")
+        os.makedirs(save_dir, exist_ok=True)
+        
+        save_path = os.path.join(save_dir, f"{filename}.npz")
+        
+        # Convert all numpy arrays to float32 and other optimizations
+        compressed_data = {}
+        for key in data:
+            if isinstance(data[key], np.ndarray):
+                # Preserve integer types for count-based data
+                # if 'burst_rate' in key or 'bid' in key:
+                #     compressed_data[key] = data[key].astype(np.uint16)
+                # else:
+                compressed_data[key] = data[key].astype(np.float32)
+            else:
+                compressed_data[key] = data[key]
+        
+        np.savez_compressed(save_path, **compressed_data)
+        print(f"Saved {save_path} ({os.path.getsize(save_path)/1e6:.1f} MB)")
 
 if __name__ == "__main__":
     import time
