@@ -209,12 +209,12 @@ class GrindingData:
         # ae_narrow = np.loadtxt(ae_name, usecols=0, dtype=np.float32)  
         # ae_broad = np.loadtxt(ae_name, usecols=1, dtype=np.float32)
 
-        ae_indices = slice_indices(len(_data_narrow), int(self.sampling_rate_ae * 0.01), 0.5)
+        ae_narrow = ae_df[0]
+        ae_broad = ae_df[1]
+        ae_indices = slice_indices(len(ae_narrow), int(self.sampling_rate_ae * 0.01), 0.5)
         vib_indices = slice_indices(len(vib_x), int(self.sampling_rate_vib * 0.1), 0.5)
         window_n = min(len(vib_indices) * 10, len(ae_indices))
         print(f"window number:{window_n} for {ae_name}")
-        ae_narrow = ae_df[0]
-        ae_broad = ae_df[1]
         del vib_data
         del ae_df
         gc.collect()
@@ -369,13 +369,12 @@ class GrindingData:
         print(f"[S] AE data shape: {ae_df.shape}")
         # ae_narrow = np.loadtxt(ae_name, usecols=0, dtype=np.float32)  
         # ae_broad = np.loadtxt(ae_name, usecols=1, dtype=np.float32)
-
-        ae_indices = slice_indices(len(_data_narrow), int(self.sampling_rate_ae * 0.01), 0.5)
+        ae_narrow = ae_df[0]
+        ae_broad = ae_df[1]
+        ae_indices = slice_indices(len(ae_narrow), int(self.sampling_rate_ae * 0.01), 0.5)
         vib_indices = slice_indices(len(vib_x), int(self.sampling_rate_vib * 0.1), 0.5)
         window_n = min(len(vib_indices) * 10, len(ae_indices))
         print(f"window number:{window_n} for {ae_name}")
-        ae_narrow = ae_df[0]
-        ae_broad = ae_df[1]
         del vib_data
         del ae_df
         gc.collect()
