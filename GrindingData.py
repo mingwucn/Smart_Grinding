@@ -1,4 +1,5 @@
-from fusion import (
+sys.path.append("../utils/")
+from utils.fusion import (
     compute_bdi,
     compute_ec,
     compute_st,
@@ -36,7 +37,6 @@ from scipy.stats import norm
 from scipy.interpolate import interp1d
 from scipy.interpolate import make_interp_spline, BSpline
 
-sys.path.append("../utils/")
 from utils.preprocessing import (
     centimeter,
     one_column,
@@ -230,8 +230,8 @@ class GrindingData:
 
             _data_narrow = np.array(ae_narrow[_i0:_it])
             _data_broad = np.array(ae_broad[_i0:_it])
-            ae_info_narrow = process_ae(_data_narrow, self.sampling_rate_ae)
-            ae_info_broad = process_ae(_data_broad, self.sampling_rate_ae)
+            ae_info_narrow = process_ae(_data_narrow, self.sampling_rate_ae, mask_energy=(50e3,  400e3), burst_threshold=4, time_spacing=1e-4)
+            ae_info_broad  = process_ae(_data_broad,  self.sampling_rate_ae, mask_energy=(150e3, 250e4), burst_threshold=4, time_spacing=1e-4)
             spec_narrow = logSpectrogram(
                 data=_data_narrow,
                 sampling_rate=self.sampling_rate_ae,
