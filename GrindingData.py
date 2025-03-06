@@ -172,6 +172,17 @@ class GrindingData:
             print("All files processed")
 
     def _process_file_physic(self, ae_name: str):
+        _fn = os.path.split(ae_name)[1].split(".")[0]
+
+        # Check if the file already exists and has a non-zero size
+        save_dir = os.path.join(self.project_dir, "intermediate")
+        save_path = os.path.join(save_dir, f"{_fn}_physics.npz")
+
+        if os.path.exists(save_path) and os.path.getsize(save_path) > 0:
+            print(f"Skipping {_fn}_physics.npz as it already exists and is not empty.")
+            return
+
+        print(f"Processing :{_fn}")
         # spec_ae_list = []
         # spec_vib_list = []
         wavelet_energy_narrow_list = []
@@ -337,6 +348,17 @@ class GrindingData:
         self._save_data(data, f"{_fn}_physics")
 
     def _process_file_spec(self, ae_name: str):
+        _fn = os.path.split(ae_name)[1].split(".")[0]
+
+        # Check if the file already exists and has a non-zero size
+        save_dir = os.path.join(self.project_dir, "intermediate")
+        save_path = os.path.join(save_dir, f"{_fn}_spec.npz")
+
+        if os.path.exists(save_path) and os.path.getsize(save_path) > 0:
+            print(f"Skipping {_fn}_spec.npz as it already exists and is not empty.")
+            return
+        print(f"Processing :{_fn}")
+
         spec_ae_list = []
         spec_vib_list = []
         # wavelet_energy_narrow_list = []
@@ -351,7 +373,6 @@ class GrindingData:
         # env_kurtosis_list_z = []
         # mag_list = []
         # print(f"Processing {ae_name}")
-        _fn = os.path.split(ae_name)[1].split(".")[0]
         p_n = int(_fn.split("-")[0]) - 1
 
         v_s = self.parameters.iloc[p_n]["Surface speed"]
@@ -367,7 +388,7 @@ class GrindingData:
 
         ae_df = pd.read_csv(ae_name, sep="\s", header=None, engine="python")
         print(f"[S] AE data shape: {ae_df.shape}")
-        # ae_narrow = np.loadtxt(ae_name, usecols=0, dtype=np.float32)  
+        # ae_narrow = np.loadtxt(ae_name, usecols=0, dtype=np.float32)
         # ae_broad = np.loadtxt(ae_name, usecols=1, dtype=np.float32)
         ae_narrow = ae_df[0]
         ae_broad = ae_df[1]
