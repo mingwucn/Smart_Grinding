@@ -1,13 +1,6 @@
 import sys
 sys.path.append("../utils/")
-from utils.fusion import (
-    compute_bdi,
-    compute_ec,
-    compute_st,
-    process_vibration,
-    process_ae,
-    process_triaxial_vib,
-)
+
 
 from concurrent.futures import ThreadPoolExecutor, as_completed
 import numpy as np
@@ -55,15 +48,20 @@ plt.style.use(["science", "nature"])
 plt.rcParams["figure.constrained_layout.use"] = True
 mpl.rcParams.update(one_column)
 
-import sys
-
-sys.path.append("./utils")
 # from pydub import AudioSegment
 import itertools
 import string
 import glob
 import subprocess
 import seedir
+from utils.fusion import (
+    compute_bdi,
+    compute_ec,
+    compute_st,
+    process_vibration,
+    process_ae,
+    process_triaxial_vib,
+)
 from utils.preprocessing import print_tdms_structure, check_identical_csv_lengths
 from utils.preprocessing import (
     linearSpectrogram,
@@ -74,7 +72,6 @@ from utils.preprocessing import (
     slice_indices,
 )
 from tqdm import tqdm
-
 
 class GrindingData:
     def __init__(self, project_dir: str):
