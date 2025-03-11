@@ -1,3 +1,4 @@
+import sys
 sys.path.append("../utils/")
 from utils.fusion import (
     compute_bdi,
@@ -21,7 +22,6 @@ import itertools
 import gc
 import time
 import scienceplots
-import sys
 import librosa
 from nptdms import TdmsFile
 from scipy import stats
