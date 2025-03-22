@@ -1,4 +1,5 @@
 import sys
+
 sys.path.append("../utils/")
 
 
@@ -73,6 +74,7 @@ from utils.preprocessing import (
 )
 from tqdm import tqdm
 
+
 class GrindingData:
     def __init__(self, project_dir: str):
         self.dataDir_ae = os.path.join(project_dir, "AE")
@@ -94,7 +96,9 @@ class GrindingData:
         self._load_surface_roughness()
 
     def _load_parameters(self):
-        df = pd.read_excel(os.path.join(self.project_dir, "parameters.xlsx"), index_col=0)
+        df = pd.read_excel(
+            os.path.join(self.project_dir, "parameters.xlsx"), index_col=0
+        )
         df.columns = ["Surface speed", "Workpiece rotation speed", "Grinding depth"]
         df["Surface speed"] = (
             df["Surface speed"].str.extract(r"(\d+)").astype(float)
@@ -123,6 +127,13 @@ class GrindingData:
                 if os.path.splitext(i)[1] == ".txt"
             ]
         )
+        self.fn_names = natsorted(
+            [
+                i.split(".")[0]
+                for i in os.listdir(self.dataDir_ae)
+                if os.path.splitext(i)[1] == ".txt"
+            ]
+        )
 
     def _construct_data(self, process_type="physics"):
         for ae_name in tqdm(self.ae_names):
@@ -131,7 +142,7 @@ class GrindingData:
             elif process_type == "spec":
                 self._process_file_spec(ae_name)
 
-    def _construct_data_mp(self, num_threads=None,process_type="physics"):
+    def _construct_data_mp(self, num_threads=None, process_type="physics"):
         # Use the number of CPU cores if num_threads is not specified
         if num_threads is None:
             num_threads = os.cpu_count()
@@ -214,12 +225,14 @@ class GrindingData:
 
         ae_df = pd.read_csv(ae_name, sep="\s", header=None, engine="python")
         print(f"[P] AE data shape: {ae_df.shape}")
-        # ae_narrow = np.loadtxt(ae_name, usecols=0, dtype=np.float32)  
+        # ae_narrow = np.loadtxt(ae_name, usecols=0, dtype=np.float32)
         # ae_broad = np.loadtxt(ae_name, usecols=1, dtype=np.float32)
 
         ae_narrow = ae_df[0]
         ae_broad = ae_df[1]
-        ae_indices = slice_indices(len(ae_narrow), int(self.sampling_rate_ae * 0.01), 0.5)
+        ae_indices = slice_indices(
+            len(ae_narrow), int(self.sampling_rate_ae * 0.01), 0.5
+        )
         vib_indices = slice_indices(len(vib_x), int(self.sampling_rate_vib * 0.1), 0.5)
         window_n = min(len(vib_indices) * 10, len(ae_indices))
         print(f"window number:{window_n} for {ae_name}")
@@ -238,8 +251,20 @@ class GrindingData:
 
             _data_narrow = np.array(ae_narrow[_i0:_it])
             _data_broad = np.array(ae_broad[_i0:_it])
-            ae_info_narrow = process_ae(_data_narrow, self.sampling_rate_ae, mask_energy=(50e3,  400e3), burst_threshold=4, time_spacing=1e-4)
-            ae_info_broad  = process_ae(_data_broad,  self.sampling_rate_ae, mask_energy=(150e3, 250e4), burst_threshold=4, time_spacing=1e-4)
+            ae_info_narrow = process_ae(
+                _data_narrow,
+                self.sampling_rate_ae,
+                mask_energy=(50e3, 400e3),
+                burst_threshold=4,
+                time_spacing=1e-4,
+            )
+            ae_info_broad = process_ae(
+                _data_broad,
+                self.sampling_rate_ae,
+                mask_energy=(150e3, 250e4),
+                burst_threshold=4,
+                time_spacing=1e-4,
+            )
             spec_narrow = logSpectrogram(
                 data=_data_narrow,
                 sampling_rate=self.sampling_rate_ae,
@@ -256,7 +281,7 @@ class GrindingData:
                 hop_length=self.hop_length,
                 window_type=self.window_type,
             )
-            spec_ae = np.stack([spec_narrow[:300,:], spec_broad[:300,:]], axis=0)
+            spec_ae = np.stack([spec_narrow[:300, :], spec_broad[:300, :]], axis=0)
 
             spec_vib_x = logSpectrogram(
                 data=_data_vib_x,
@@ -389,7 +414,9 @@ class GrindingData:
         # ae_broad = np.loadtxt(ae_name, usecols=1, dtype=np.float32)
         ae_narrow = ae_df[0]
         ae_broad = ae_df[1]
-        ae_indices = slice_indices(len(ae_narrow), int(self.sampling_rate_ae * 0.01), 0.5)
+        ae_indices = slice_indices(
+            len(ae_narrow), int(self.sampling_rate_ae * 0.01), 0.5
+        )
         vib_indices = slice_indices(len(vib_x), int(self.sampling_rate_vib * 0.1), 0.5)
         window_n = min(len(vib_indices) * 10, len(ae_indices))
         print(f"window number:{window_n} for {ae_name}")
@@ -424,7 +451,7 @@ class GrindingData:
                 hop_length=self.hop_length,
                 window_type=self.window_type,
             )
-            spec_ae = np.stack([spec_narrow[:300,:], spec_broad[:300,:]], axis=0)
+            spec_ae = np.stack([spec_narrow[:300, :], spec_broad[:300, :]], axis=0)
 
             spec_vib_x = logSpectrogram(
                 data=_data_vib_x,
@@ -516,9 +543,9 @@ class GrindingData:
         if save_dir is None:
             save_dir = os.path.join(self.project_dir, "intermediate")
         os.makedirs(save_dir, exist_ok=True)
-        
+
         save_path = os.path.join(save_dir, f"{filename}.npz")
-        
+
         # Convert all numpy arrays to float32 and other optimizations
         compressed_data = {}
         for key in data:
@@ -530,9 +557,58 @@ class GrindingData:
                 compressed_data[key] = data[key].astype(np.float32)
             else:
                 compressed_data[key] = data[key]
-        
+
         np.savez_compressed(save_path, **compressed_data)
         print(f"Saved {save_path} ({os.path.getsize(save_path)/1e6:.1f} MB)")
+
+    def _load_all_physics_data(self, save_dir: str = None):
+        if save_dir is None:
+            save_dir = os.path.join(self.project_dir, "intermediate")
+
+        all_data = {}
+        ec_list = []
+        bid_list = []
+        st_list = []
+        # for filename in os.listdir(save_dir):
+        for filename in self.fn_names:
+            # if filename.endswith("_physics.npz"):
+                # Load the compressed data
+            loaded = np.load(os.path.join(save_dir, f"{filename}_physics.npz"))
+
+            # Convert the loaded data back to a dictionary
+            data = {key: loaded[key] for key in loaded.files}
+            ec = np.max(data["ec"])
+            bid = np.max(data["bid"])
+            st = np.max(data["st"])
+            ec_list.append(ec)
+            bid_list.append(bid)
+            st_list.append(st)
+            # Store in our collection
+            all_data[filename.split("_physics.npz")[0]] = data
+
+        self.physical_data = all_data
+        self.ec = ec_list
+        self.bid = bid_list
+        self.st = st_list
+
+    def _load_all_spec_data(self, save_dir: str = None):
+        if save_dir is None:
+            save_dir = os.path.join(self.project_dir, "intermediate")
+        all_data = {}
+        for filename in os.listdir(save_dir):
+            if filename.endswith("_spec.npz"):
+                data = np.load(os.path.join(save_dir, filename))
+                all_data[filename] = data
+        self.spec_data = all_data
+        # return all_data
+
+    def _load_npz_data(self, filename: str, save_dir: str = None):
+        if save_dir is None:
+            save_dir = os.path.join(self.project_dir, "intermediate")
+        save_path = os.path.join(save_dir, f"{filename}.npz")
+        data = np.load(save_path)
+        return data
+
 
 if __name__ == "__main__":
     import time
@@ -552,7 +628,7 @@ if __name__ == "__main__":
     parser.add_argument(
         "--process_type",
         type=str,
-        default='physics',
+        default="physics",
         help="Process type. physics or spec",
     )
     args = parser.parse_args()
@@ -579,7 +655,9 @@ if __name__ == "__main__":
     if args.threads == 1:
         grinding_data._construct_data(process_type=args.process_type)
     else:
-        grinding_data._construct_data_mp(num_threads=args.threads,process_type=args.process_type)
+        grinding_data._construct_data_mp(
+            num_threads=args.threads, process_type=args.process_type
+        )
     # intermediate_dir = os.path.join(project_dir, "intermediate")
     # print(f"Saving data to {intermediate_dir}")
     # if not os.path.exists(intermediate_dir):
