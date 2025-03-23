@@ -598,7 +598,7 @@ class GrindingData:
         for filename in os.listdir(save_dir):
             if filename.endswith("_spec.npz"):
                 data = np.load(os.path.join(save_dir, filename))
-                all_data[filename] = data
+                all_data[filename.split("_spec.npz")[0]] = data
         self.spec_data = all_data
         # return all_data
 
