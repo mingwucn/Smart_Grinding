@@ -95,7 +95,7 @@ if __name__ == "__main__":
     parser.add_argument('--batch_size', type=int, default=batch_size, help=f'Input batch size on each device (default: {batch_size})')
     parser.add_argument('--learning_rate', type=float, default=1e-5, help=f'Learning rate, default:1e-5')
     # parser.add_argument('--gpu', default="0", type=lambda a: json.loads('['+a.replace(" ",",")+']'), help="List of values") 
-    parser.add_argument('--gpu', default="0", type=str, help="gpu id or 'cpu' ")
+    parser.add_argument('--gpu', default="cuda:0", type=str, help="gpu id or 'cpu' ")
     parser.add_argument('--fold_i', default="0", type=lambda a: json.loads('['+a.replace(" ",",")+']'), help="fold_i") 
     parser.add_argument('--folds', default="10", type=int, help="folds number") 
     parser.add_argument('--save_every', type=int, default=1, help=f'Save every 1 steps')
@@ -131,7 +131,7 @@ if __name__ == "__main__":
         repeat=args.repeat,
         model=model,
         optimizer=optimizer,
-        loss_fn = None,
+        criterion=None,
         collate_fn=collate_fn,
         model_name=model_name, 
         gpu=args.gpu,
@@ -141,6 +141,6 @@ if __name__ == "__main__":
         fold_i = args.fold_i, 
         num_workers = args.num_workers, 
         test = args.test,
-        task_type='classification'
+        task_type='regression'
         )
 
