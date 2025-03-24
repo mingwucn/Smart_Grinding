@@ -79,8 +79,8 @@ class GrindingData:
     def __init__(self, project_dir: str):
         self.dataDir_ae = os.path.join(project_dir, "AE")
         self.dataDir_vib = os.path.join(project_dir, "Vibration")
-        print(f"AE data directory: {self.dataDir_ae}")
-        print(f"Vibration data directory: {self.dataDir_vib}")
+        # print(f"AE data directory: {self.dataDir_ae}")
+        # print(f"Vibration data directory: {self.dataDir_vib}")
         self.sampling_rate_ae = 4 * 1e6
         self.sampling_rate_vib = 51.2 * 1e3
         self.project_dir = project_dir
