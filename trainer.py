@@ -141,6 +141,7 @@ if __name__ == "__main__":
         fold_i = args.fold_i, 
         num_workers = args.num_workers, 
         test = args.test,
-        task_type='regression'
+        task_type='regression',
+        verbose_interval=args.verbose_interval
         )
 
