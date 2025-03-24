@@ -14,6 +14,8 @@ import numpy as np
 import torch.nn as nn
 import torch.distributed as dist
 import torch.multiprocessing as mp
+import warnings
+warnings.filterwarnings("ignore")  # Suppress all warnings
 from torch.nn.parallel import DistributedDataParallel as DDP
 from torch.utils.data.dataset import Subset
 from torch.utils.data import Dataset, DataLoader, DistributedSampler
@@ -86,14 +88,14 @@ if __name__ == "__main__":
     os.environ['TORCH_USE_CUDA_DSA'] = "1"
 
     num_epochs = 100
-    batch_size = 4
+    batch_size = 2
 
     parser = argparse.ArgumentParser(description='Distributed training job')
     parser.add_argument('--epochs', type=int, default= 100, help='Total epochs to train the model')
     parser.add_argument('--batch_size', type=int, default=batch_size, help=f'Input batch size on each device (default: {batch_size})')
     parser.add_argument('--learning_rate', type=float, default=1e-5, help=f'Learning rate, default:1e-5')
     # parser.add_argument('--gpu', default="0", type=lambda a: json.loads('['+a.replace(" ",",")+']'), help="List of values") 
-    parser.add_argument('--gpu', default="0", type=int, help="gpu id")
+    parser.add_argument('--gpu', default="0", type=str, help="gpu id or 'cpu' ")
     parser.add_argument('--fold_i', default="0", type=lambda a: json.loads('['+a.replace(" ",",")+']'), help="fold_i") 
     parser.add_argument('--folds', default="10", type=int, help="folds number") 
     parser.add_argument('--save_every', type=int, default=1, help=f'Save every 1 steps')
@@ -129,6 +131,7 @@ if __name__ == "__main__":
         repeat=args.repeat,
         model=model,
         optimizer=optimizer,
+        loss_fn = None,
         collate_fn=collate_fn,
         model_name=model_name, 
         gpu=args.gpu,
@@ -137,5 +140,7 @@ if __name__ == "__main__":
         batch_size = args.batch_size,
         fold_i = args.fold_i, 
         num_workers = args.num_workers, 
-        test = args.test)
+        test = args.test,
+        task_type='classification'
+        )
 

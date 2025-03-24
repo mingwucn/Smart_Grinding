@@ -36,9 +36,8 @@ class GrindingPredictor(nn.Module):
         # Vib Pathway (3 spec channels + 4 time features)
         self.vib_spec_processor = SpectrogramProcessor(3, out_dim=32)
 
-        if self.interp == True:
-            self.ae_interpreter = FeatureInterpreter(spec_feat_dim=32, time_feat_dim=4)
-            self.vib_interpreter = FeatureInterpreter(spec_feat_dim=32, time_feat_dim=4)
+        self.ae_interpreter = FeatureInterpreter(spec_feat_dim=32, time_feat_dim=4)
+        self.vib_interpreter = FeatureInterpreter(spec_feat_dim=32, time_feat_dim=4)
 
         # Physics Processor
         self.physics_encoder = nn.Sequential(
