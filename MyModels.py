@@ -29,9 +29,6 @@ class FeatureInterpreter(nn.Module):
 class GrindingPredictor(nn.Module):
     def __init__(self,interp=False, input_type="all"):
         super().__init__()
-        allowed_input_types = ['ae_spec', 'vib_spec', 'ae_spec+ae_features', 'vib_spec+vib_features', 'ae_spec+ae_features+vib_spec+vib_features', 'all']
-        if input_type not in allowed_input_types:
-            raise ValueError(f"input_type must be one of {allowed_input_types}")
         self.input_type = input_type
         # AE Pathway (2 spec channels + 4 time features)
         self.ae_spec_processor = SpectrogramProcessor(2, out_dim=32)
@@ -48,9 +45,11 @@ class GrindingPredictor(nn.Module):
             nn.Linear(3, 64), nn.ReLU(), nn.LayerNorm(64)
         )
 
+        self.regressor_input_dim = self._calculate_regressor_input_dim()
+
         # Final Fusion
         self.regressor = nn.Sequential(
-            nn.Linear(64 * 2 + 64, 128),  # 64(ae) + 64(vib) + 64(physics)
+            nn.Linear(self.regressor_input_dim, 128),  # 64(ae) + 64(vib) + 64(physics)
             nn.ReLU(),
             nn.Linear(128, 1),
         )
@@ -99,6 +98,25 @@ class GrindingPredictor(nn.Module):
             return self.regressor(combined), {"ae": outputs.get('ae_attn', None), "vib": outputs.get('vib_attn', None)}
         else:
             return self.regressor(combined)
+
+    def _calculate_regressor_input_dim(self):
+        """
+        Calculate the input dimension for the regressor based on the input_type.
+        """
+        input_type = self.input_type
+        if input_type == 'ae_spec':
+            return 64  # Only AE output
+        elif input_type == 'vib_spec':
+            return 64  # Only Vib output
+        elif input_type == 'ae_spec+ae_features':
+            return 64 + 4  # AE output + AE time features
+        elif input_type == 'vib_spec+vib_features':
+            return 64 + 4  # Vib output + Vib time features
+        elif input_type == 'ae_spec+ae_features+vib_spec+vib_features':
+            return 64 + 4 + 64 + 4  # AE output + AE time features + Vib output + Vib time features
+        else:  # 'all'
+            return 64 + 64 + 64  # AE output + Vib output + Physics
+
 
     def _init_weights(self, m):
         """
