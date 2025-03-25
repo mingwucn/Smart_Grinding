@@ -125,10 +125,6 @@ class GrindingDataset(Dataset):
         max_val = np.max(data)
         return (data - min_val) / (max_val - min_val + 1e-8)  # Add small epsilon to avoid division by zero
 
-def list_collate_fn(batch):
-    # Return the batch as a list of tuples (features, labels)
-    return list(batch)
-
 def collate_fn(batch):
     # Process parameters and labels
     pp = torch.stack([item['features_pp'] for item in batch])
@@ -136,12 +132,12 @@ def collate_fn(batch):
     
     # AE features
     ae_features = [item['features_ae'].permute(1,0) for item in batch]
-    ae_lengths = [x.shape[0] for x in ae_features]
+    # ae_lengths = [x.shape[0] for x in ae_features]
     ae_padded = torch.nn.utils.rnn.pad_sequence(ae_features, batch_first=True)
     
     # Vibration features
     vib_features = [item['features_vib'].permute(1,0) for item in batch]
-    vib_lengths = [x.shape[0] for x in vib_features]
+    # vib_lengths = [x.shape[0] for x in vib_features]
     vib_padded = torch.nn.utils.rnn.pad_sequence(vib_features, batch_first=True)
     
     # Spectrograms
@@ -155,7 +151,6 @@ def collate_fn(batch):
         'spec_ae': ae_specs,
         'spec_vib': vib_specs,
         'label': labels,
-        'lengths': (ae_lengths, vib_lengths)
     }
 
 def pad_spectrograms(spectrograms):
@@ -169,17 +164,7 @@ def pad_spectrograms(spectrograms):
         ], dim=0))
     return torch.stack(padded)
 
-def collate_fn_pad(batch):
-    return {
-        'features_pp': torch.stack([x['features_pp'] for x in batch]),
-        'features_ae': nn.utils.rnn.pad_sequence([x['features_ae'].permute(1,0) for x in batch], batch_first=True),
-        'features_vib': nn.utils.rnn.pad_sequence([x['features_vib'].permute(1,0) for x in batch], batch_first=True),
-        'spec_ae': pad_spectrograms([x['spec_ae'] for x in batch]),
-        'spec_vib': pad_spectrograms([x['spec_vib'] for x in batch]),
-        'label': torch.stack([x['label'] for x in batch])
-    }
-
-def get_dataset():
+def get_dataset(input_type: str = "all"):
 
     project_name = ["Grinding", "XiAnJiaoTong"]
 

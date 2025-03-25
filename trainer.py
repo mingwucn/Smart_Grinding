@@ -100,12 +100,17 @@ if __name__ == "__main__":
     parser.add_argument('--folds', default="10", type=int, help="folds number") 
     parser.add_argument('--save_every', type=int, default=1, help=f'Save every 1 steps')
     parser.add_argument('--model_name', type=str, default='SmartGrinding', help=f'The model name')
+    parser.add_argument('--input_type', type=str, default='all', help=f'The input type')
     parser.add_argument('--repeat', type=int, default=10, help=f'Repeat Times for Cross validation, default 1, no repeat')
     parser.add_argument('--test', type=bool, default=False, help=f'Go through the dataset without training, default False')
     parser.add_argument('--num_workers', type=int, default=4, help=f'Worker number in the dataloader, default:4')
     parser.add_argument('--verbose_interval', type=int, default=2, help=f'Verbose interval, default:2')
     
     args = parser.parse_args()
+
+    allowed_input_types = ['ae_spec', 'vib_spec', 'ae_spec+ae_features', 'vib_spec+vib_features', 'ae_spec+ae_features+vib_spec+vib_features', 'all']
+    if args.input_type not in allowed_input_types:
+        raise ValueError(f"input_type must be one of {allowed_input_types}")
 
     print(f"\n============= Settings =============")
     print(f"Processed in GPU: {args.gpu}")
@@ -114,6 +119,7 @@ if __name__ == "__main__":
     print(f"Learning rate: {args.learning_rate}")
     print(f"Save every {args.save_every} epoch(s)")
     print(f"Model name: {args.model_name}")
+    print(f"Input type: {args.input_type}")
     print(f"Cross validation folds: {args.folds}")
     print(f"Repeat times: {args.repeat}")
     print(f"Number of workers: {args.num_workers}")
@@ -121,15 +127,17 @@ if __name__ == "__main__":
     print(f"============= Settings =============\n")
 
     dataset = get_dataset()
-    model = GrindingPredictor(interp=False)
+    model_name = args.model_name
+
+    model = GrindingPredictor(interp=False,input_type=args.input_type)
     optimizer = torch.optim.Adam(model.parameters(), lr=args.learning_rate)
-    model_name = "SmartGrinding"
     cv_trainer(
         dataset = dataset,
         Trainer = Trainer, 
         folds=args.folds,
         repeat=args.repeat,
         model=model,
+        input_type = args.input_type,
         optimizer=optimizer,
         criterion=None,
         collate_fn=collate_fn,

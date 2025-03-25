@@ -27,8 +27,12 @@ class FeatureInterpreter(nn.Module):
 
 
 class GrindingPredictor(nn.Module):
-    def __init__(self,interp=False):
+    def __init__(self,interp=False, input_type="all"):
         super().__init__()
+        allowed_input_types = ['ae_spec', 'vib_spec', 'ae_spec+ae_features', 'vib_spec+vib_features', 'ae_spec+ae_features+vib_spec+vib_features', 'all']
+        if input_type not in allowed_input_types:
+            raise ValueError(f"input_type must be one of {allowed_input_types}")
+        self.input_type = input_type
         # AE Pathway (2 spec channels + 4 time features)
         self.ae_spec_processor = SpectrogramProcessor(2, out_dim=32)
         self.interp = interp
@@ -52,26 +56,74 @@ class GrindingPredictor(nn.Module):
         )
 
     def forward(self, batch):
-        # AE Processing
-        ae_spec = self.ae_spec_processor(batch["spec_ae"])  # [batch, seq_len, 32]
-        ae_time = batch["features_ae"]  # [batch, seq_len, 4]
-        ae_out, ae_attn = self.ae_interpreter(ae_spec, ae_time)
+        mode = self.input_type
+        outputs = {}
 
-        # Vib Processing
-        vib_spec = self.vib_spec_processor(batch["spec_vib"])  # [batch, seq_len, 32]
-        vib_time = batch["features_vib"]  # [batch, seq_len, 4]
-        vib_out, vib_attn = self.vib_interpreter(vib_spec, vib_time)
+        # AE Processing (if applicable)
+        if 'ae_spec' in mode or 'all' in mode:
+            ae_spec = self.ae_spec_processor(batch["spec_ae"])  # [batch, seq_len, 32]
+            ae_time = batch["features_ae"]  # [batch, seq_len, 4]
+            ae_out, ae_attn = self.ae_interpreter(ae_spec, ae_time)
+            outputs['ae_out'] = ae_out
+            outputs['ae_attn'] = ae_attn
 
-        # Physics
-        physics = self.physics_encoder(batch["features_pp"])
+        # Vib Processing (if applicable)
+        if 'vib_spec' in mode or 'all' in mode:
+            vib_spec = self.vib_spec_processor(batch["spec_vib"])  # [batch, seq_len, 32]
+            vib_time = batch["features_vib"]  # [batch, seq_len, 4]
+            vib_out, vib_attn = self.vib_interpreter(vib_spec, vib_time)
+            outputs['vib_out'] = vib_out
+            outputs['vib_attn'] = vib_attn
+
+        # Physics Processing (if applicable)
+        if 'all' in mode:
+            physics = self.physics_encoder(batch["features_pp"])
+            outputs['physics'] = physics
+
+        # Combine features based on mode
+        if mode == 'ae_spec':
+            combined = outputs['ae_out']
+        elif mode == 'vib_spec':
+            combined = outputs['vib_out']
+        elif mode == 'ae_spec+ae_features':
+            combined = torch.cat([outputs['ae_out'], ae_time.mean(dim=1)], dim=1)
+        elif mode == 'vib_spec+vib_features':
+            combined = torch.cat([outputs['vib_out'], vib_time.mean(dim=1)], dim=1)
+        elif mode == 'ae_spec+ae_features+vib_spec+vib_features':
+            combined = torch.cat([outputs['ae_out'], ae_time.mean(dim=1), outputs['vib_out'], vib_time.mean(dim=1)], dim=1)
+        else:  # 'all'
+            combined = torch.cat([outputs['ae_out'], outputs['vib_out'], outputs['physics']], dim=1)
 
         # Final prediction
-        combined = torch.cat([ae_out, vib_out, physics], dim=1)
-        if self.interp == True:
-            return self.regressor(combined), {"ae": ae_attn, "vib": vib_attn}
+        if self.interp:
+            return self.regressor(combined), {"ae": outputs.get('ae_attn', None), "vib": outputs.get('vib_attn', None)}
         else:
             return self.regressor(combined)
 
+    def _init_weights(self, m):
+        """
+        Initialize weights for all layers in the model.
+        """
+        if isinstance(m, nn.Linear):
+            nn.init.xavier_uniform_(m.weight)
+            if m.bias is not None:
+                nn.init.constant_(m.bias, 0)
+        elif isinstance(m, nn.Conv2d):
+            nn.init.kaiming_normal_(m.weight, mode='fan_out', nonlinearity='relu')
+            if m.bias is not None:
+                nn.init.constant_(m.bias, 0)
+        elif isinstance(m, nn.LayerNorm):
+            nn.init.constant_(m.weight, 1.0)
+            nn.init.constant_(m.bias, 0)
+        elif isinstance(m, nn.BatchNorm2d):
+            nn.init.constant_(m.weight, 1.0)
+            nn.init.constant_(m.bias, 0)
+
+    def initialize_weights(self):
+        """
+        Apply weight initialization to all submodules.
+        """
+        self.apply(self._init_weights)
 
 # Modified Spectrogram Processor
 class SpectrogramProcessor(nn.Module):
