@@ -27,7 +27,7 @@ from utils.InterfaceDeclaration import LPBFPointData,LPBFData
 from utils.MLModels import SVMModel, CNN_Base_1D_Model, ResNet15_1D_Model
 
 from MyModels import GrindingPredictor
-from MyDataset import get_dataset
+from MyDataset import MemoryDataset, get_dataset
 
 def collate_fn(batch):
     def pad_spectrograms(spectrograms):
@@ -127,12 +127,16 @@ if __name__ == "__main__":
     print(f"============= Settings =============\n")
 
     dataset = get_dataset()
+    full_data = [dataset[i] for i in range(len(dataset))]
+    print("Load dataset into RAM")
+    memory_dataset = MemoryDataset(full_data)
+
     model_name = args.model_name
 
     model = GrindingPredictor(interp=False,input_type=args.input_type)
     optimizer = torch.optim.Adam(model.parameters(), lr=args.learning_rate)
     cv_trainer(
-        dataset = dataset,
+        dataset = memory_dataset,
         Trainer = Trainer, 
         folds=args.folds,
         repeat=args.repeat,

@@ -62,6 +62,14 @@ from utils.preprocessing import (
 )
 from GrindingData import GrindingData
 
+class MemoryDataset(Dataset):
+    def __init__(self, data):
+        self.data = data
+    def __getitem__(self, idx):
+        return self.data[idx]
+    def __len__(self):
+        return len(self.data)
+
 class GrindingDataset(Dataset):
     def __init__(self, grinding_data):
         self.fn_names = grinding_data.fn_names
