@@ -84,6 +84,16 @@ class GrindingDataset(Dataset):
         return len(self.fn_names)
 
     def __getitem__(self, idx):
+        # Handle different index types
+        if isinstance(idx, torch.Tensor):
+            idx = idx.item()
+        elif isinstance(idx, np.ndarray):
+            idx = idx.item()
+        elif isinstance(idx, slice):
+            raise ValueError("Slice indexing not supported, use list of indices instead")
+        idx = int(idx)
+        if not isinstance(idx, int):
+            raise TypeError(f"Index must be int, got {type(idx)}")
         fn = self.fn_names[idx]
         data = self.physical_data[fn]
         
