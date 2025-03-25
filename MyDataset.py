@@ -3,6 +3,65 @@ from torch.utils.data import Dataset, DataLoader
 import torch.nn as nn
 import numpy as np
 
+import sys
+sys.path.append("../utils/")
+
+from concurrent.futures import ThreadPoolExecutor, as_completed
+import numpy as np
+import pandas as pd
+import scipy
+import os
+import glob
+import itertools
+import gc
+import time
+import librosa
+from nptdms import TdmsFile
+from scipy import stats
+from natsort import natsorted
+
+import dill as pickle
+from scipy.stats import norm
+from scipy.interpolate import interp1d
+from scipy.interpolate import make_interp_spline, BSpline
+
+from utils.preprocessing import (
+    centimeter,
+    one_column,
+    two_column,
+    cm_std,
+    cm_bright,
+    cm_highCon,
+    cm_mark,
+)
+
+np.random.seed(16)
+
+# from pydub import AudioSegment
+import itertools
+import string
+import glob
+import subprocess
+import seedir
+from utils.fusion import (
+    compute_bdi,
+    compute_ec,
+    compute_st,
+    process_vibration,
+    process_ae,
+    process_triaxial_vib,
+)
+from utils.preprocessing import print_tdms_structure, check_identical_csv_lengths
+from utils.preprocessing import (
+    linearSpectrogram,
+    logMelSpectrogram,
+    melSpectrogram,
+    logSpectrogram,
+    standardize_array,
+    slice_indices,
+)
+from GrindingData import GrindingData
+
 class GrindingDataset(Dataset):
     def __init__(self, grinding_data):
         self.fn_names = grinding_data.fn_names
@@ -121,67 +180,7 @@ def collate_fn_pad(batch):
     }
 
 def get_dataset():
-    import sys
-    sys.path.append("../utils/")
 
-    from concurrent.futures import ThreadPoolExecutor, as_completed
-    import numpy as np
-    import pandas as pd
-    import scipy
-    import os
-    import glob
-    import itertools
-    import gc
-    import time
-    import librosa
-    from nptdms import TdmsFile
-    from scipy import stats
-    from natsort import natsorted
-
-    import dill as pickle
-    from scipy.stats import norm
-    from scipy.interpolate import interp1d
-    from scipy.interpolate import make_interp_spline, BSpline
-
-    from utils.preprocessing import (
-        centimeter,
-        one_column,
-        two_column,
-        cm_std,
-        cm_bright,
-        cm_highCon,
-        cm_mark,
-    )
-
-    np.random.seed(16)
-
-    # from pydub import AudioSegment
-    import itertools
-    import string
-    import glob
-    import subprocess
-    import seedir
-    from utils.fusion import (
-        compute_bdi,
-        compute_ec,
-        compute_st,
-        process_vibration,
-        process_ae,
-        process_triaxial_vib,
-    )
-    from utils.preprocessing import print_tdms_structure, check_identical_csv_lengths
-    from utils.preprocessing import (
-        linearSpectrogram,
-        logMelSpectrogram,
-        melSpectrogram,
-        logSpectrogram,
-        standardize_array,
-        slice_indices,
-    )
-    from GrindingData import GrindingData
-    from tqdm import tqdm
-
-    alphabet = list(string.ascii_lowercase)
     project_name = ["Grinding", "XiAnJiaoTong"]
 
     if os.name == "posix":
