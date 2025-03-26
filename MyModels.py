@@ -59,7 +59,7 @@ class GrindingPredictor(nn.Module):
         outputs = {}
 
         # AE Processing (if applicable)
-        if 'ae_spec' in mode or 'all' in mode:
+        if 'ae' in mode or 'all' in mode:
             ae_spec = self.ae_spec_processor(batch["spec_ae"])  # [batch, seq_len, 32]
             ae_time = batch["features_ae"]  # [batch, seq_len, 4]
             ae_out, ae_attn = self.ae_interpreter(ae_spec, ae_time)
@@ -67,7 +67,7 @@ class GrindingPredictor(nn.Module):
             outputs['ae_attn'] = ae_attn
 
         # Vib Processing (if applicable)
-        if 'vib_spec' in mode or 'all' in mode:
+        if 'vib' in mode or 'all' in mode:
             vib_spec = self.vib_spec_processor(batch["spec_vib"])  # [batch, seq_len, 32]
             vib_time = batch["features_vib"]  # [batch, seq_len, 4]
             vib_out, vib_attn = self.vib_interpreter(vib_spec, vib_time)

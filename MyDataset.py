@@ -117,17 +117,7 @@ class GrindingDataset(Dataset):
         ], dtype=torch.float32) 
 
         # Conditionally include other components
-        if 'ae_spec' in self.required_components or 'all' in self.required_components:
-            item['spec_ae'] = torch.tensor(
-                self.loaded_data['spec_data'][self.loaded_data['fn_names'][idx]]['spec_ae']
-            )
-            
-        if 'vib_spec' in self.required_components or 'all' in self.required_components:
-            item['spec_vib'] = torch.tensor(
-                self.loaded_data['spec_data'][self.loaded_data['fn_names'][idx]]['spec_vib']
-            )
-
-        if 'ae_features' in self.required_components or 'all' in self.required_components:
+        if 'ae' in self.required_components or 'all' in self.required_components:
             item['features_ae'] = torch.tensor([
                 self._normalize(self.loaded_data['physical_data'][self.loaded_data['fn_names'][idx]]['wavelet_energy_broad']),
                 self._normalize(self.loaded_data['physical_data'][self.loaded_data['fn_names'][idx]]['wavelet_energy_narrow']),
@@ -135,13 +125,20 @@ class GrindingDataset(Dataset):
                 self._normalize(self.loaded_data['physical_data'][self.loaded_data['fn_names'][idx]]['burst_rate_broad']),
             ], dtype=torch.float32)
 
-        if 'vib_features' in self.required_components or 'all' in self.required_components:
+            item['spec_ae'] = torch.tensor(
+                self.loaded_data['spec_data'][self.loaded_data['fn_names'][idx]]['spec_ae']
+            )
+
+        if 'vib' in self.required_components or 'all' in self.required_components:
             item['features_vib'] = torch.tensor([
                 self._normalize(self.loaded_data['physical_data'][self.loaded_data['fn_names'][idx]]['env_kurtosis_x']),
                 self._normalize(self.loaded_data['physical_data'][self.loaded_data['fn_names'][idx]]['env_kurtosis_y']),
                 self._normalize(self.loaded_data['physical_data'][self.loaded_data['fn_names'][idx]]['env_kurtosis_z']),
                 self._normalize(self.loaded_data['physical_data'][self.loaded_data['fn_names'][idx]]['mag']),
             ], dtype=torch.float32)
+            item['spec_vib'] = torch.tensor(
+                self.loaded_data['spec_data'][self.loaded_data['fn_names'][idx]]['spec_vib']
+            )
 
 
         return item
