@@ -71,17 +71,29 @@ class MemoryDataset(Dataset):
         return len(self.data)
 
 class GrindingDataset(Dataset):
-    def __init__(self, grinding_data):
-        self.fn_names = grinding_data.fn_names
-        self.physical_data = grinding_data.physical_data
-        self.spec_data = grinding_data.spec_data
-        self.sr  = self._normalize(grinding_data.sr)
-        self.ec  = self._normalize(grinding_data.ec)
-        self.st  = self._normalize(grinding_data.st)
-        self.bid = self._normalize(grinding_data.bid)
+    def __init__(self, grinding_data, input_type: str = "all"):
+        self.required_components = set(input_type.split('+')) if input_type != 'all' else {'all'}
+        self.loaded_data = self._select_data_components(grinding_data)
+
+    def _select_data_components(self, grinding_data):
+        """Selectively store only needed data based on input_type"""
+        data = {
+            'fn_names': grinding_data.fn_names,
+            'sr': self._normalize(grinding_data.sr),
+            'ec': self._normalize(grinding_data.ec),
+            'st': self._normalize(grinding_data.st),
+            'bid': self._normalize(grinding_data.bid),
+            'label': grinding_data.sr
+        }
+        if 'all' in self.required_components or '_spec' in self.required_components:
+            data['spec_data'] = grinding_data.spec_data
+
+        if '_features' in self.required_components or 'all' in self.required_components:
+            data['physical_data'] = grinding_data.physical_data
+        return data
 
     def __len__(self):
-        return len(self.fn_names)
+        return len(self.loaded_data['fn_names'])
 
     def __getitem__(self, idx):
         # Handle different index types
@@ -94,47 +106,45 @@ class GrindingDataset(Dataset):
         idx = int(idx)
         if not isinstance(idx, int):
             raise TypeError(f"Index must be int, got {type(idx)}")
-        fn = self.fn_names[idx]
-        data = self.physical_data[fn]
-        
-        # Extract features
-        features_ae = torch.tensor([
-            self._normalize(data['wavelet_energy_broad']),
-            self._normalize(data['wavelet_energy_narrow']),
-            self._normalize(data['burst_rate_narrow']),
-            self._normalize(data['burst_rate_broad']),
-        ], dtype=torch.float32)
 
-        features_vib = torch.tensor([
-            self._normalize(data['env_kurtosis_x']),
-            self._normalize(data['env_kurtosis_y']),
-            self._normalize(data['env_kurtosis_z']),
-            self._normalize(data['mag']),
-        ], dtype=torch.float32)
-        
-        features_pp = torch.tensor([
-            self.ec[idx],
-            self.st[idx],
-            self.bid[idx]
-        ], dtype=torch.float32)
+        item = {'label': torch.tensor(self.loaded_data['label'][idx],dtype=torch.long)}
 
-        # Extract sepc_data
-        spec_ae = torch.tensor(self.spec_data[fn]['spec_ae'])
-        spec_vib = torch.tensor(self.spec_data[fn]['spec_vib'])
-       
-        # Extract label
-        label = self.sr[idx]
-        label = torch.tensor(label, dtype=torch.long)
-        
-        # return spec_ae, spec_vib, features_pp, features_ae, features_vib, label
-        return {
-            'spec_ae': spec_ae,
-            'spec_vib': spec_vib,
-            'features_pp': features_pp,
-            'features_ae': features_ae,
-            'features_vib': features_vib,
-            'label': label
-        }
+        # Process features_pp (always included)
+        item['features_pp'] = torch.tensor([
+            self.loaded_data['ec'][idx],
+            self.loaded_data['st'][idx],
+            self.loaded_data['bid'][idx]
+        ], dtype=torch.float32) 
+
+        # Conditionally include other components
+        if 'ae_spec' in self.required_components or 'all' in self.required_components:
+            item['spec_ae'] = torch.tensor(
+                self.loaded_data['spec_data'][self.loaded_data['fn_names'][idx]]['spec_ae']
+            )
+            
+        if 'vib_spec' in self.required_components or 'all' in self.required_components:
+            item['spec_vib'] = torch.tensor(
+                self.loaded_data['spec_data'][self.loaded_data['fn_names'][idx]]['spec_vib']
+            )
+
+        if 'ae_features' in self.required_components or 'all' in self.required_components:
+            item['features_ae'] = torch.tensor([
+                self._normalize(self.loaded_data['physical_data'][self.loaded_data['fn_names'][idx]]['wavelet_energy_broad']),
+                self._normalize(self.loaded_data['physical_data'][self.loaded_data['fn_names'][idx]]['wavelet_energy_narrow']),
+                self._normalize(self.loaded_data['physical_data'][self.loaded_data['fn_names'][idx]]['burst_rate_narrow']),
+                self._normalize(self.loaded_data['physical_data'][self.loaded_data['fn_names'][idx]]['burst_rate_broad']),
+            ], dtype=torch.float32)
+
+        if 'vib_features' in self.required_components or 'all' in self.required_components:
+            item['features_vib'] = torch.tensor([
+                self._normalize(self.loaded_data['physical_data'][self.loaded_data['fn_names'][idx]]['env_kurtosis_x']),
+                self._normalize(self.loaded_data['physical_data'][self.loaded_data['fn_names'][idx]]['env_kurtosis_y']),
+                self._normalize(self.loaded_data['physical_data'][self.loaded_data['fn_names'][idx]]['env_kurtosis_z']),
+                self._normalize(self.loaded_data['physical_data'][self.loaded_data['fn_names'][idx]]['mag']),
+            ], dtype=torch.float32)
+
+
+        return item
 
 
     def _normalize(self, data):
@@ -182,6 +192,52 @@ def pad_spectrograms(spectrograms):
         ], dim=0))
     return torch.stack(padded)
 
+def get_collate_fn(input_type='all'):
+    # Parse input type into components
+    required = set(input_type.split('+')) if input_type != 'all' else {'all'}
+    print(f"Required components: {required}")
+    
+    def collate_fn(batch):
+        def pad_spectrograms(spectrograms):
+            max_len = max(spec.shape[0] for spec in spectrograms)
+            return torch.stack([
+                torch.cat([spec, torch.zeros((max_len - spec.shape[0], *spec.shape[1:]), 
+                       dtype=spec.dtype)], dim=0)
+                for spec in spectrograms
+            ])
+
+        # Always present components
+        batch_dict = {
+            'features_pp': torch.stack([item['features_pp'] for item in batch]),
+            'label': torch.stack([item['label'] for item in batch])
+        }
+
+        # # Conditionally process AE components
+        # if 'all' in required or 'ae' in required:
+        # # if 'all' in required or 'ae_features' in required:
+        #     ae_features = [item['features_ae'].permute(1,0) for item in batch]
+        #     batch_dict['features_ae'] = torch.nn.utils.rnn.pad_sequence(ae_features, batch_first=True)
+        #     batch_dict['spec_ae'] = pad_spectrograms([item['spec_ae'] for item in batch])
+
+        # # Conditionally process VIB components
+        # if 'all' in required or 'vib' in required:
+        #     batch_dict['spec_vib'] = pad_spectrograms([item['spec_vib'] for item in batch])
+        # # if 'all' in required or 'vib_features' in required:
+        #     vib_features = [item['features_vib'].permute(1,0) for item in batch]
+        #     batch_dict['features_vib'] = torch.nn.utils.rnn.pad_sequence(vib_features, batch_first=True)
+
+        ae_features = [item['features_ae'].permute(1,0) for item in batch]
+        vib_features = [item['features_vib'].permute(1,0) for item in batch]
+
+        batch_dict['features_ae'] = torch.nn.utils.rnn.pad_sequence(ae_features, batch_first=True)
+        batch_dict['spec_ae'] = pad_spectrograms([item['spec_ae'] for item in batch])
+        batch_dict['features_ae'] = torch.nn.utils.rnn.pad_sequence(ae_features, batch_first=True)
+        batch_dict['features_vib'] = torch.nn.utils.rnn.pad_sequence(vib_features, batch_first=True)
+
+        return batch_dict
+
+    return collate_fn
+
 def get_dataset(input_type: str = "all"):
 
     project_name = ["Grinding", "XiAnJiaoTong"]
@@ -199,7 +255,20 @@ def get_dataset(input_type: str = "all"):
     dataDir_ae = os.path.join(project_dir, "AE")
     dataDir_vib = os.path.join(project_dir, "Vibration")
     grinding_data = GrindingData(project_dir)
-    grinding_data._load_all_physics_data()
-    grinding_data._load_all_spec_data()
+    grinding_data._load_all_physics_data() 
+
+    # Only load necessary data based on input_type
+    if 'spec' in input_type or input_type == 'all':
+        print("Loading all spectrograms")
+        grinding_data._load_all_spec_data()  # Assuming this loads AE spectrograms
+ 
+    # if 'ae_features' in input_type or input_type == 'all':
+        # grinding_data._load_all_physics_data() 
+    # if 'vib_features' in input_type or input_type == 'all':
+        # grinding_data._load_all_physics_data() 
+    
+    # grinding_data._load_all_physics_data()
+    # grinding_data._load_all_spec_data()
+
     dataset = GrindingDataset(grinding_data)
     return dataset

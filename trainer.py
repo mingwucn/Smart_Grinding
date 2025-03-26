@@ -27,46 +27,7 @@ from utils.InterfaceDeclaration import LPBFPointData,LPBFData
 from utils.MLModels import SVMModel, CNN_Base_1D_Model, ResNet15_1D_Model
 
 from MyModels import GrindingPredictor
-from MyDataset import MemoryDataset, get_dataset
-
-def collate_fn(batch):
-    def pad_spectrograms(spectrograms):
-        max_len = max(spec.shape[0] for spec in spectrograms)
-        padded = []
-        for spec in spectrograms:
-            padding = max_len - spec.shape[0]
-            padded.append(torch.cat([
-                spec,
-                torch.zeros((padding, *spec.shape[1:]), dtype=spec.dtype)
-            ], dim=0))
-        return torch.stack(padded)
-    # Process parameters and labels
-    pp = torch.stack([item['features_pp'] for item in batch])
-    labels = torch.stack([item['label'] for item in batch])
-    
-    # AE features
-    ae_features = [item['features_ae'].permute(1,0) for item in batch]
-    ae_lengths = [x.shape[0] for x in ae_features]
-    ae_padded = torch.nn.utils.rnn.pad_sequence(ae_features, batch_first=True)
-    
-    # Vibration features
-    vib_features = [item['features_vib'].permute(1,0) for item in batch]
-    vib_lengths = [x.shape[0] for x in vib_features]
-    vib_padded = torch.nn.utils.rnn.pad_sequence(vib_features, batch_first=True)
-    
-    # Spectrograms
-    ae_specs = pad_spectrograms([item['spec_ae'] for item in batch])
-    vib_specs = pad_spectrograms([item['spec_vib'] for item in batch])
-    
-    return {
-        'features_pp': pp,
-        'features_ae': ae_padded,
-        'features_vib': vib_padded,
-        'spec_ae': ae_specs,
-        'spec_vib': vib_specs,
-        'label': labels,
-        'lengths': (ae_lengths, vib_lengths)
-    }
+from MyDataset import MemoryDataset, get_dataset, get_collate_fn
 
 # Heritage from TrainerBase, only modify the _forward function
 class Trainer(TrainerBase):
@@ -105,6 +66,7 @@ if __name__ == "__main__":
     parser.add_argument('--test', type=bool, default=False, help=f'Go through the dataset without training, default False')
     parser.add_argument('--num_workers', type=int, default=4, help=f'Worker number in the dataloader, default:4')
     parser.add_argument('--verbose_interval', type=int, default=2, help=f'Verbose interval, default:2')
+    parser.add_argument('--ram_margin', type=int, default=0.2, help=f'RAM margin, default:0.2')
     
     args = parser.parse_args()
 
@@ -124,9 +86,11 @@ if __name__ == "__main__":
     print(f"Repeat times: {args.repeat}")
     print(f"Number of workers: {args.num_workers}")
     print(f"Verbose interval: {args.verbose_interval}")
+    print(f"Random access memory margin: {args.ram_margin}")
     print(f"============= Settings =============\n")
 
-    dataset = get_dataset()
+    dataset = get_dataset(input_type=args.input_type)
+    collate_fn = get_collate_fn(input_type=args.input_type)
     # full_data = [dataset[i] for i in range(len(dataset))]
     # print("Load dataset into RAM")
     # memory_dataset = MemoryDataset(full_data)
@@ -154,7 +118,8 @@ if __name__ == "__main__":
         num_workers = args.num_workers, 
         test = args.test,
         task_type='regression',
-        verbose_interval=args.verbose_interval
+        verbose_interval=args.verbose_interval,
+        safety_ram_margin=args.ram_margin
         )
 
 ####
