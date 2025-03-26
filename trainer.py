@@ -67,6 +67,7 @@ if __name__ == "__main__":
     parser.add_argument('--num_workers', type=int, default=4, help=f'Worker number in the dataloader, default:4')
     parser.add_argument('--verbose_interval', type=int, default=2, help=f'Verbose interval, default:2')
     parser.add_argument('--ram_margin', type=int, default=0.2, help=f'RAM margin, default:0.2')
+    parser.add_argument('--train_mode', type=str, default="chunked", help=f'Train mode, default:chunked')
     
     args = parser.parse_args()
 
@@ -87,6 +88,7 @@ if __name__ == "__main__":
     print(f"Number of workers: {args.num_workers}")
     print(f"Verbose interval: {args.verbose_interval}")
     print(f"Random access memory margin: {args.ram_margin}")
+    print(f"Train model: {args.train_mode}")
     print(f"============= Settings =============\n")
 
     dataset = get_dataset(input_type=args.input_type)
@@ -113,11 +115,11 @@ if __name__ == "__main__":
         gpu=args.gpu,
         save_every=args.save_every, 
         epochs=args.epochs,
-        batch_size = args.batch_size,
+        batch_size = args.batch_size, 
         fold_i = args.fold_i, 
         num_workers = args.num_workers, 
-        test = args.test,
-        task_type='regression',
+        test = args.test, 
+        task_type='regression', 
         verbose_interval=args.verbose_interval,
         safety_ram_margin=args.ram_margin
         )
