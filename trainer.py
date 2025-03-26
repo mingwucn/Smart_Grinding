@@ -121,7 +121,8 @@ if __name__ == "__main__":
         test = args.test, 
         task_type='regression', 
         verbose_interval=args.verbose_interval,
-        safety_ram_margin=args.ram_margin
+        safety_ram_margin=args.ram_margin,
+        train_mode=args.train_mode
         )
 
 ####
