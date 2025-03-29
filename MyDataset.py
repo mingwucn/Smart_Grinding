@@ -236,23 +236,8 @@ def get_collate_fn(input_type='all'):
     return collate_fn
 
 def get_dataset(input_type: str = "all"):
-
-    project_name = ["Grinding", "XiAnJiaoTong"]
-
-    if os.name == "posix":
-        project_dir: str = os.path.join(
-            subprocess.getoutput("echo $DATADIR"),
-            *project_name,
-        )
-    elif os.name == "nt":
-        project_dir: str = os.path.join(
-            subprocess.getoutput("echo %datadir%"), *project_name
-        )
-
-    dataDir_ae = os.path.join(project_dir, "AE")
-    dataDir_vib = os.path.join(project_dir, "Vibration")
-    grinding_data = GrindingData(project_dir)
-    grinding_data._load_all_physics_data() 
+    data = load_init_data()
+    grinding_data = data['grinding_data']
 
     # Only load necessary data based on input_type
     if 'spec' in input_type or input_type == 'all':
@@ -269,3 +254,26 @@ def get_dataset(input_type: str = "all"):
 
     dataset = GrindingDataset(grinding_data)
     return dataset
+
+def load_init_data():
+    project_name = ["Grinding", "XiAnJiaoTong"]
+
+    if os.name == "posix":
+        project_dir: str = os.path.join(
+            subprocess.getoutput("echo $DATADIR"),
+            *project_name,
+        )
+    elif os.name == "nt":
+        project_dir: str = os.path.join(
+            subprocess.getoutput("echo %datadir%"), *project_name
+        )
+
+    dataDir_ae = os.path.join(project_dir, "AE")
+    dataDir_vib = os.path.join(project_dir, "Vibration")
+    grinding_data = GrindingData(project_dir)
+    grinding_data._load_all_physics_data() 
+    return {
+        "dataDir_ae": dataDir_ae,
+        "dataDir_vib": dataDir_vib,
+        "grinding_data": grinding_data
+    }
