@@ -226,8 +226,8 @@ def get_collate_fn(input_type='all'):
         ae_features = [item['features_ae'].permute(1,0) for item in batch]
         vib_features = [item['features_vib'].permute(1,0) for item in batch]
 
-        batch_dict['features_ae'] = torch.nn.utils.rnn.pad_sequence(ae_features, batch_first=True)
         batch_dict['spec_ae'] = pad_spectrograms([item['spec_ae'] for item in batch])
+        batch_dict['spec_vib'] = pad_spectrograms([item['spec_vib'] for item in batch])
         batch_dict['features_ae'] = torch.nn.utils.rnn.pad_sequence(ae_features, batch_first=True)
         batch_dict['features_vib'] = torch.nn.utils.rnn.pad_sequence(vib_features, batch_first=True)
 
