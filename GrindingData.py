@@ -87,8 +87,8 @@ class GrindingData:
 
         self.n_fft = 1024
         self.n_fft_vib = 512
-        self.hop_length = self.n_fft // 2
-        self.hop_length_vib = self.n_fft_vib // 2
+        self.hop_length = self.n_fft // 1.2
+        self.hop_length_vib = self.n_fft_vib // 1.2
         self.window_type = "hann"
         self.mel_bins = 256
         self._load_ae_names()
@@ -637,20 +637,22 @@ if __name__ == "__main__":
 
     start_time = time.time()
     alphabet = list(string.ascii_lowercase)
-    project_name = ["Grinding", "XiAnJiaoTong"]
-
+    # Project settings
+    sampling_rate_ae = 4*1e6
+    sampling_rate_vib = 51.2*1e3
+    project_name = ["Grinding","XiAnJiaoTong"]
     if os.name == "posix":
-        project_dir: str = os.path.join(
-            subprocess.getoutput("echo $DATADIR"),
-            *project_name,
-        )
+        data_dir = subprocess.getoutput("echo $DATADIR")
     elif os.name == "nt":
-        project_dir: str = os.path.join(
-            subprocess.getoutput("echo %datadir%"), *project_name
-        )
+        data_dir = subprocess.getoutput("echo %datadir%")
+    project_dir = os.path.join(data_dir, *project_name)
+    if not os.path.exists(project_dir):
+        project_name[0] = os.path.join("2024-MUSIC","Grinding")
+    project_dir = os.path.join(data_dir, *project_name)
+    dataDir_ae = os.path.join(project_dir,"AE")
+    dataDir_vib = os.path.join(project_dir,"Vibration")
+    # End project settings
 
-    dataDir_ae = os.path.join(project_dir, "AE")
-    dataDir_vib = os.path.join(project_dir, "Vibration")
     grinding_data = GrindingData(project_dir)
     if args.threads == 1:
         grinding_data._construct_data(process_type=args.process_type)
