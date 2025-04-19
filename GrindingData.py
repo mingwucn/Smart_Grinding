@@ -190,7 +190,7 @@ class GrindingData:
             print(f"Skipping {_fn}_physics.npz as it already exists and is not empty.")
             return
 
-        print(f"Processing :{_fn}")
+        print(f"Processing :{_fn}, save to {save_path}")
         # spec_ae_list = []
         # spec_vib_list = []
         wavelet_energy_narrow_list = []
@@ -379,7 +379,7 @@ class GrindingData:
         if os.path.exists(save_path) and os.path.getsize(save_path) > 0:
             print(f"Skipping {_fn}_spec.npz as it already exists and is not empty.")
             return
-        print(f"Processing :{_fn}")
+        print(f"Processing :{_fn}, save to {save_path}")
 
         spec_ae_list = []
         spec_vib_list = []
