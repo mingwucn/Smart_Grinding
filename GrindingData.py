@@ -241,7 +241,7 @@ class GrindingData:
         gc.collect()
 
         for idx in tqdm(range(window_n)):
-            print(f"Processing : {_fn} | {idx}/{window_n} for {ae_name}")
+            # print(f"Processing : {_fn} | {idx}/{window_n} for {ae_name}")
             _i0, _it = ae_indices[idx]
             _i0_vib, _it_vib = vib_indices[int(idx // 10)]
 
@@ -427,7 +427,7 @@ class GrindingData:
 
         for idx in tqdm(range(window_n)):
             # print(f"Processing {idx}/{window_n} for {ae_name}")
-            print(f"Processing : {_fn} | {idx}/{window_n} for {ae_name}")
+            # print(f"Processing : {_fn} | {idx}/{window_n} for {ae_name}")
             _i0, _it = ae_indices[idx]
             _i0_vib, _it_vib = vib_indices[int(idx // 10)]
 
