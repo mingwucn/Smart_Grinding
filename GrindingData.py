@@ -241,7 +241,7 @@ class GrindingData:
         gc.collect()
 
         for idx in tqdm(range(window_n)):
-            # print(f"Processing {idx}/{window_n} for {ae_name}")
+            print(f"Processing : {_fn} | {idx}/{window_n} for {ae_name}")
             _i0, _it = ae_indices[idx]
             _i0_vib, _it_vib = vib_indices[int(idx // 10)]
 
@@ -367,7 +367,7 @@ class GrindingData:
             "env_kurtosis_z": env_kurtosis_z,
             "mag": mag,
         }
-        self._save_data(data, f"{_fn}_physics")
+        self._save_data(data, f"{_fn}_physics", save_dir)
 
     def _process_file_spec(self, ae_name: str):
         _fn = os.path.split(ae_name)[1].split(".")[0]
@@ -379,7 +379,8 @@ class GrindingData:
         if os.path.exists(save_path) and os.path.getsize(save_path) > 0:
             print(f"Skipping {_fn}_spec.npz as it already exists and is not empty.")
             return
-        print(f"Processing :{_fn}, save to {save_path}")
+        # print(f"Processing :{_fn}, save to {save_path}")
+        print(f"Processing :{_fn}")
 
         spec_ae_list = []
         spec_vib_list = []
@@ -426,6 +427,7 @@ class GrindingData:
 
         for idx in tqdm(range(window_n)):
             # print(f"Processing {idx}/{window_n} for {ae_name}")
+            print(f"Processing : {_fn} | {idx}/{window_n} for {ae_name}")
             _i0, _it = ae_indices[idx]
             _i0_vib, _it_vib = vib_indices[int(idx // 10)]
 
@@ -523,7 +525,7 @@ class GrindingData:
             # "mag": mag,
         }
         # self._save_data(data, _fn)
-        self._save_data(data, f"{_fn}_spec")
+        self._save_data(data, f"{_fn}_spec", save_dir)
 
     def _save_data_pkl(self, data, filename: str, save_dir: str = None):
         if save_dir is None:
