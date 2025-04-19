@@ -87,8 +87,8 @@ class GrindingData:
 
         self.n_fft = 1024
         self.n_fft_vib = 512
-        self.hop_length = self.n_fft // 1.2
-        self.hop_length_vib = self.n_fft_vib // 1.2
+        self.hop_length = int(self.n_fft // 1.2)
+        self.hop_length_vib = int(self.n_fft_vib // 1.2)
         self.window_type = "hann"
         self.mel_bins = 256
         self._load_ae_names()
@@ -135,8 +135,8 @@ class GrindingData:
             ]
         )
 
-    def _construct_data(self, process_type="physics"):
-        for ae_name in tqdm(self.ae_names):
+    def _construct_data(self, process_type="physics",start_i=0,end_i=-1):
+        for ae_name in tqdm(self.ae_names[start_i:end_i]):
             if process_type == "physics":
                 self._process_file_physic(ae_name)
             elif process_type == "spec":
@@ -621,6 +621,18 @@ if __name__ == "__main__":
     import os
 
     parser = argparse.ArgumentParser(description="Grinding data processing")
+    parser.add_argument(
+        "--start_i",
+        type=int,
+        default=0,
+        help="Start index of processed file",
+    )
+    parser.add_argument(
+        "--end_i",
+        type=int,
+        default=-1,
+        help="End index of processed file",
+    )
     parser.add_argument(
         "--threads",
         type=int,
