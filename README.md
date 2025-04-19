@@ -31,6 +31,11 @@ Read data: ``ReadData.ipynb``
 Physical data embedded: ``Physical_informed.ipynb``
 Signal feature extraction: ``Signal_extraction.ipynb``
 
+```bash
+python GrindingData.py --threads=6 --process_type=spec
+python GrindingData.py --threads=6 --process_type=physics
+```
+
 ## 
 - DTW.ipynb
 
