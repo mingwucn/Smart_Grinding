@@ -2,7 +2,7 @@
 
 mkdir -p log
 
-allowed_input_types=('pp')
+allowed_input_types=('vib_spec' 'vib_spec+vib_features')
 
 epochs=20
 lr=1e-5
@@ -11,7 +11,7 @@ folds=10
 repeat=10
 batch_size=8
 dataset_mode='ram'
-gpu='cuda:3'
+gpu='cpu'
 num_workers=0
 
 # for input_type in "${allowed_input_types[@]}"; do
