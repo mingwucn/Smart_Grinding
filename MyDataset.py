@@ -272,7 +272,7 @@ def get_dataset(input_type: str = "all", train_mode: str = "classical"):
     elif train_mode == "classical":
         dataset = dataset
     else:
-        raise ValueError(f"train_mode must be one of ['classical', 'chunked', 'ram'], but got {args.train_mode}")
+        raise ValueError(f"train_mode must be one of ['classical', 'chunked', 'ram'], but got {train_mode}")
 
     return dataset
 
