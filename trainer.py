@@ -41,16 +41,17 @@ if __name__ == "__main__":
     import argparse
     import json
     import os
+    import warnings
+    warnings.filterwarnings('ignore')
+    from MyDataset import  percentage, cpus
 
     os.environ['CUDA_LAUNCH_BLOCKING'] = "1"
     os.environ['TORCH_USE_CUDA_DSA'] = "1"
 
-    num_epochs = 100
-    batch_size = 2
 
     parser = argparse.ArgumentParser(description='Distributed training job')
     parser.add_argument('--epochs', type=int, default= 100, help='Total epochs to train the model')
-    parser.add_argument('--batch_size', type=int, default=batch_size, help=f'Input batch size on each device (default: {batch_size})')
+    parser.add_argument('--batch_size', type=int, default=4, help=f'Input batch size on each device (default: 4)')
     parser.add_argument('--learning_rate', type=float, default=1e-5, help=f'Learning rate, default:1e-5')
     # parser.add_argument('--gpu', default="0", type=lambda a: json.loads('['+a.replace(" ",",")+']'), help="List of values") 
     parser.add_argument('--gpu', default="cuda:0", type=str, help="gpu id or 'cpu' ")
@@ -86,7 +87,7 @@ if __name__ == "__main__":
     print(f"Dataset model: {args.dataset_mode}")
     print(f"============= Settings =============\n")
 
-    dataset = get_dataset(input_type=args.input_type, dataset_mode=args.dataset_mode)
+    dataset = get_dataset(input_type=args.input_type, dataset_mode=args.dataset_mode, cpus=cpus, percentage=percentage)
     collate_fn = get_collate_fn(input_type=args.input_type)
 
     model_name = args.model_name

@@ -1,5 +1,7 @@
 import torch
+import psutil
 from torch.utils.data import Dataset, DataLoader
+from torch.utils.data.dataset import Subset
 import torch.nn as nn
 import numpy as np
 import sys
@@ -7,6 +9,7 @@ import itertools
 import string
 import glob
 import subprocess
+from tqdm import tqdm
 sys.path.append("../utils/")
 from concurrent.futures import ThreadPoolExecutor, as_completed
 import pandas as pd
@@ -57,6 +60,7 @@ from utils.preprocessing import (
     standardize_array,
     slice_indices,
 )
+from utils.MLUtils import getSubsetIdx
 
 # Project settings
 alphabet = list(string.ascii_lowercase)
@@ -75,6 +79,11 @@ dataDir_ae = os.path.join(project_dir,"AE")
 dataDir_vib = os.path.join(project_dir,"Vibration")
 
 allowed_input_types = ['ae_spec', 'vib_spec', 'ae_spec+ae_features', 'vib_spec+vib_features', 'ae_spec+ae_features+vib_spec+vib_features', 'pp', 'all']
+
+logical_threads = psutil.cpu_count(logical=True)
+physical_threads = psutil.cpu_count(logical=False)
+cpus = [logical_threads, physical_threads, 2, 1]
+percentage=[0.6, 0.8, 0.90, 1]
 # End project settings
 
 from GrindingData import GrindingData
@@ -213,6 +222,7 @@ def get_collate_fn(input_type='all'):
     
     def collate_fn(batch):
         def pad_spectrograms(spectrograms):
+            spectrograms = [spec.squeeze() for spec in spectrograms]
             max_len = max(spec.shape[0] for spec in spectrograms)
             return torch.stack([
                 torch.cat([spec, torch.zeros((max_len - spec.shape[0], *spec.shape[1:]), 
@@ -222,8 +232,8 @@ def get_collate_fn(input_type='all'):
 
         # Always present components
         batch_dict = {
-            'features_pp': torch.stack([item['features_pp'] for item in batch]),
-            'label': torch.stack([item['label'] for item in batch])
+            'features_pp': torch.stack([item['features_pp'].squeeze() for item in batch]),
+            'label': torch.stack([item['label'].squeeze() for item in batch])
         }
 
         # # Conditionally process AE components
@@ -240,8 +250,8 @@ def get_collate_fn(input_type='all'):
         #     vib_features = [item['features_vib'].permute(1,0) for item in batch]
         #     batch_dict['features_vib'] = torch.nn.utils.rnn.pad_sequence(vib_features, batch_first=True)
 
-        ae_features = [item['features_ae'].permute(1,0) for item in batch]
-        vib_features = [item['features_vib'].permute(1,0) for item in batch]
+        ae_features = [item['features_ae'].squeeze().permute(1,0) for item in batch]
+        vib_features = [item['features_vib'].squeeze().permute(1,0) for item in batch]
 
         batch_dict['spec_ae'] = pad_spectrograms([item['spec_ae'] for item in batch])
         batch_dict['spec_vib'] = pad_spectrograms([item['spec_vib'] for item in batch])
@@ -252,7 +262,7 @@ def get_collate_fn(input_type='all'):
 
     return collate_fn
 
-def get_dataset(input_type: str = "all", dataset_mode: str = "classical"):
+def get_dataset(input_type: str = "all", dataset_mode: str = "classical",cpus = [logical_threads,1], percentage = [0.6, 1.0]):
     data = load_init_data()
     grinding_data = data['grinding_data']
     if input_type not in allowed_input_types:
@@ -279,16 +289,31 @@ def get_dataset(input_type: str = "all", dataset_mode: str = "classical"):
         dataset = dataset
     elif dataset_mode == "ram":
         full_data = []
-        size_bytes = 0
-        for item in dataset:
-            full_data.append(item)
-            size_bytes += sys.getsizeof(item)
-        size_bytes += sys.getsizeof(full_data)
+        # size_bytes = 0
+
+        lenDataset = len(dataset)
+        idx = getSubsetIdx(lenDataset, percentage, cpus)
+        keys = list(idx.keys())
+        for _c,_k in zip(cpus[:-1], keys[:-1]):
+            _idx = idx[_k]
+            ramDataLoader = DataLoader(Subset(dataset, np.array(_idx)), batch_size=1, shuffle=False, num_workers=int(_c), pin_memory=False,prefetch_factor=1)
+            for i,item in tqdm(enumerate(ramDataLoader),desc=f'Loading {_k} data for {_c} threads'):
+                full_data.append(item)
+                # size_bytes += sys.getsizeof(item)
+            # print(f"Estimated size of data: {size_bytes:.2f} GB")
+            print(f"Loading threads ({_c}) with remaining of data ({len(full_data)}/{len(dataset)})")
+            del ramDataLoader
+            gc.collect()
+
+        for i in tqdm(idx[keys[-1]], desc=f'Loading {keys[-1]} data for single thread'):
+            full_data.append(dataset[i])
+            # size_bytes += sys.getsizeof(dataset[i])
+        
+        size_bytes = sys.getsizeof(full_data)
         size_gb = size_bytes / (1024 ** 3)
-        # full_data = [dataset[i] for i in range(len(dataset))]
-        print("Load dataset into RAM")
-        print(f"Estimated size of full_data: {size_gb:.2f} GB")
         dataset = MemoryDataset(full_data)
+        print(f"Length of full_data: {len(full_data)}")
+        print(f"Estimated size of full_data: {size_gb:.2f} GB")
 
     elif dataset_mode == "classical":
         dataset = dataset

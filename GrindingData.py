@@ -631,7 +631,7 @@ if __name__ == "__main__":
     parser.add_argument(
         "--end_i",
         type=int,
-        default=-1,
+        default=9999,
         help="End index of processed file",
     )
     parser.add_argument(
