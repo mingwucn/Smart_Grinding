@@ -1,14 +1,14 @@
-allowed_input_types = ['ae_spec', 'vib_spec', 'ae_spec+ae_features', 'vib_spec+vib_features', 'ae_spec+ae_features+vib_spec+vib_features', 'pp', 'all']
-
 import torch
 from torch.utils.data import Dataset, DataLoader
 import torch.nn as nn
 import numpy as np
 import sys
+import itertools
+import string
+import glob
+import subprocess
 sys.path.append("../utils/")
-
 from concurrent.futures import ThreadPoolExecutor, as_completed
-import numpy as np
 import pandas as pd
 import scipy
 import os
@@ -39,10 +39,6 @@ from utils.preprocessing import (
 np.random.seed(16)
 
 # from pydub import AudioSegment
-import itertools
-import string
-import glob
-import subprocess
 import seedir
 from utils.fusion import (
     compute_bdi,
@@ -61,6 +57,26 @@ from utils.preprocessing import (
     standardize_array,
     slice_indices,
 )
+
+# Project settings
+alphabet = list(string.ascii_lowercase)
+sampling_rate_ae = 4*1e6
+sampling_rate_vib = 51.2*1e3
+project_name = ["Grinding","XiAnJiaoTong"]
+if os.name == "posix":
+    data_dir = subprocess.getoutput("echo $DATADIR")
+elif os.name == "nt":
+    data_dir = subprocess.getoutput("echo %datadir%")
+project_dir = os.path.join(data_dir, *project_name)
+if not os.path.exists(project_dir):
+    project_name[0] = os.path.join("2024-MUSIC","Grinding")
+project_dir = os.path.join(data_dir, *project_name)
+dataDir_ae = os.path.join(project_dir,"AE")
+dataDir_vib = os.path.join(project_dir,"Vibration")
+
+allowed_input_types = ['ae_spec', 'vib_spec', 'ae_spec+ae_features', 'vib_spec+vib_features', 'ae_spec+ae_features+vib_spec+vib_features', 'pp', 'all']
+# End project settings
+
 from GrindingData import GrindingData
 
 class MemoryDataset(Dataset):
@@ -282,20 +298,6 @@ def get_dataset(input_type: str = "all", dataset_mode: str = "classical"):
     return dataset
 
 def load_init_data():
-    project_name = ["Grinding", "XiAnJiaoTong"]
-
-    if os.name == "posix":
-        project_dir: str = os.path.join(
-            subprocess.getoutput("echo $DATADIR"),
-            *project_name,
-        )
-    elif os.name == "nt":
-        project_dir: str = os.path.join(
-            subprocess.getoutput("echo %datadir%"), *project_name
-        )
-
-    dataDir_ae = os.path.join(project_dir, "AE")
-    dataDir_vib = os.path.join(project_dir, "Vibration")
     grinding_data = GrindingData(project_dir)
     grinding_data._load_all_physics_data() 
     return {

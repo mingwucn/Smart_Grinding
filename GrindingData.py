@@ -619,6 +619,7 @@ if __name__ == "__main__":
     import argparse
     import json
     import os
+    from MyDataset import sampling_rate_ae,sampling_rate_vib, project_dir, project_name, data_dir, dataDir_ae, dataDir_vib, alphabet
 
     parser = argparse.ArgumentParser(description="Grinding data processing")
     parser.add_argument(
@@ -650,23 +651,6 @@ if __name__ == "__main__":
     print(f"Process type: {args.process_type}")
 
     start_time = time.time()
-    alphabet = list(string.ascii_lowercase)
-    # Project settings
-    sampling_rate_ae = 4*1e6
-    sampling_rate_vib = 51.2*1e3
-    project_name = ["Grinding","XiAnJiaoTong"]
-    if os.name == "posix":
-        data_dir = subprocess.getoutput("echo $DATADIR")
-    elif os.name == "nt":
-        data_dir = subprocess.getoutput("echo %datadir%")
-    project_dir = os.path.join(data_dir, *project_name)
-    if not os.path.exists(project_dir):
-        project_name[0] = os.path.join("2024-MUSIC","Grinding")
-    project_dir = os.path.join(data_dir, *project_name)
-    dataDir_ae = os.path.join(project_dir,"AE")
-    dataDir_vib = os.path.join(project_dir,"Vibration")
-    # End project settings
-
     grinding_data = GrindingData(project_dir)
     if args.threads == 1:
         grinding_data._construct_data(
