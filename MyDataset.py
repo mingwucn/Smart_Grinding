@@ -235,7 +235,7 @@ def get_collate_fn(input_type='all'):
 
     return collate_fn
 
-def get_dataset(input_type: str = "all"):
+def get_dataset(input_type: str = "all", train_mode: str = "classical"):
     data = load_init_data()
     grinding_data = data['grinding_data']
 
@@ -253,6 +253,27 @@ def get_dataset(input_type: str = "all"):
     # grinding_data._load_all_spec_data()
 
     dataset = GrindingDataset(grinding_data)
+
+    if train_mode == "chunked":
+        dataset = dataset
+    elif train_mode == "ram":
+        full_data = []
+        size_bytes = 0
+        for item in dataset:
+            full_data.append(item)
+            size_bytes += sys.getsizeof(item)
+        size_bytes += sys.getsizeof(full_data)
+        size_gb = size_bytes / (1024 ** 3)
+        # full_data = [dataset[i] for i in range(len(dataset))]
+        print("Load dataset into RAM")
+        print(f"Estimated size of full_data: {size_gb:.2f} GB")
+        dataset = MemoryDataset(full_data)
+
+    elif train_mode == "classical":
+        dataset = dataset
+    else:
+        raise ValueError(f"train_mode must be one of ['classical', 'chunked', 'ram'], but got {args.train_mode}")
+
     return dataset
 
 def load_init_data():

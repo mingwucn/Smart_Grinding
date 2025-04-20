@@ -67,7 +67,7 @@ if __name__ == "__main__":
     parser.add_argument('--num_workers', type=int, default=4, help=f'Worker number in the dataloader, default:4')
     parser.add_argument('--verbose_interval', type=int, default=2, help=f'Verbose interval, default:2')
     parser.add_argument('--ram_margin', type=int, default=0.2, help=f'RAM margin, default:0.2')
-    parser.add_argument('--train_mode', type=str, default="chunked", help=f'Train mode, default:chunked')
+    parser.add_argument('--train_mode', type=str, default="chunked", help=f'Train mode, options: [classical, chunked, ram], default:chunked')
     
     args = parser.parse_args()
 
@@ -91,11 +91,8 @@ if __name__ == "__main__":
     print(f"Train model: {args.train_mode}")
     print(f"============= Settings =============\n")
 
-    dataset = get_dataset(input_type=args.input_type)
+    dataset = get_dataset(input_type=args.input_type, train_mode=args.train_mode)
     collate_fn = get_collate_fn(input_type=args.input_type)
-    # full_data = [dataset[i] for i in range(len(dataset))]
-    # print("Load dataset into RAM")
-    # memory_dataset = MemoryDataset(full_data)
 
     model_name = args.model_name
 

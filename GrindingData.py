@@ -669,11 +669,15 @@ if __name__ == "__main__":
 
     grinding_data = GrindingData(project_dir)
     if args.threads == 1:
-        grinding_data._construct_data(process_type=args.process_type)
+        grinding_data._construct_data(
+            process_type=args.process_type, 
+            start_i=args.start_i, end_i=args.end_i
+            )
     else:
         grinding_data._construct_data_mp(
-            num_threads=args.threads, process_type=args.process_type
-        )
+            num_threads=args.threads, process_type=args.process_type,
+            start_i=args.start_i, end_i=args.end_i
+            )
     # intermediate_dir = os.path.join(project_dir, "intermediate")
     # print(f"Saving data to {intermediate_dir}")
     # if not os.path.exists(intermediate_dir):
