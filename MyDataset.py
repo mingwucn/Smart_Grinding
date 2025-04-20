@@ -114,6 +114,9 @@ class GrindingDataset(Dataset):
         if 'all' in self.required_components or '_spec' in self.required_components:
             data['spec_data'] = grinding_data.spec_data
 
+        if 'pp' in self.required_components or 'all' in self.required_components:
+            data['physical_data'] = grinding_data.physical_data
+
         if '_features' in self.required_components or 'all' in self.required_components:
             data['physical_data'] = grinding_data.physical_data
         return data
@@ -268,12 +271,14 @@ def get_dataset(input_type: str = "all", dataset_mode: str = "classical",cpus = 
     if input_type not in allowed_input_types:
         raise ValueError(f"input_type must be one of {allowed_input_types}")
 
+    grinding_data._load_all_spec_data()  # Assuming this loads AE spectrograms
+    grinding_data._load_all_physics_data()  
     # === Only need to modify the block line for new dataset ===
     # Only load necessary data based on input_type
-    if 'spec' in input_type or input_type == 'all':
-        print("Loading all spectrograms")
-        grinding_data._load_all_spec_data()  # Assuming this loads AE spectrograms
- 
+    # if 'spec' in input_type or input_type == 'all':
+    #     print("Loading all spectrograms")
+    #     grinding_data._load_all_spec_data()  # Assuming this loads AE spectrograms
+
     # if 'ae_features' in input_type or input_type == 'all':
         # grinding_data._load_all_physics_data() 
     # if 'vib_features' in input_type or input_type == 'all':
