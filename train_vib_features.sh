@@ -2,7 +2,7 @@
 
 mkdir -p log
 
-allowed_input_types=('all' 'pp' 'ae_spec+ae_features+vib_spec+vib_features')
+allowed_input_types=('vib_spec' 'vib_features'  'vib_features+pp')
 
 epochs=20
 lr=1e-5

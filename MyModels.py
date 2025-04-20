@@ -90,9 +90,13 @@ class GrindingPredictor(nn.Module):
             combined = torch.cat([outputs['vib_out'], vib_time.mean(dim=1)], dim=1)
         elif mode == 'ae_spec+ae_features+vib_spec+vib_features':
             combined = torch.cat([outputs['ae_out'], ae_time.mean(dim=1), outputs['vib_out'], vib_time.mean(dim=1)], dim=1)
+        elif mode == 'ae_features+pp':
+            combined = torch.cat([ae_time.mean(dim=1),outputs['physics']], dim=1)
+        elif mode == 'vib_features+pp':
+            combined = torch.cat([vib_time.mean(dim=1),outputs['physics']], dim=1)
         elif mode == 'pp':
             combined = outputs['physics']
-        else:  # 'all'
+        elif mode == 'all':  # 'all'
             combined = torch.cat([outputs['ae_out'], outputs['vib_out'], outputs['physics']], dim=1)
 
         # Final prediction
