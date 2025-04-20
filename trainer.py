@@ -27,7 +27,7 @@ from utils.InterfaceDeclaration import LPBFPointData,LPBFData
 from utils.MLModels import SVMModel, CNN_Base_1D_Model, ResNet15_1D_Model
 
 from MyModels import GrindingPredictor
-from MyDataset import MemoryDataset, get_dataset, get_collate_fn
+from MyDataset import allowed_input_types, MemoryDataset, get_dataset, get_collate_fn
 
 # Heritage from TrainerBase, only modify the _forward function
 class Trainer(TrainerBase):
@@ -71,7 +71,7 @@ if __name__ == "__main__":
     
     args = parser.parse_args()
 
-    allowed_input_types = ['ae_spec', 'vib_spec', 'ae_spec+ae_features', 'vib_spec+vib_features', 'ae_spec+ae_features+vib_spec+vib_features', 'all']
+
     if args.input_type not in allowed_input_types:
         raise ValueError(f"input_type must be one of {allowed_input_types}")
 

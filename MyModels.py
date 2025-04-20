@@ -75,7 +75,7 @@ class GrindingPredictor(nn.Module):
             outputs['vib_attn'] = vib_attn
 
         # Physics Processing (if applicable)
-        if 'all' in mode:
+        if 'all' in mode or 'pp' in mode:
             physics = self.physics_encoder(batch["features_pp"])
             outputs['physics'] = physics
 
@@ -90,6 +90,8 @@ class GrindingPredictor(nn.Module):
             combined = torch.cat([outputs['vib_out'], vib_time.mean(dim=1)], dim=1)
         elif mode == 'ae_spec+ae_features+vib_spec+vib_features':
             combined = torch.cat([outputs['ae_out'], ae_time.mean(dim=1), outputs['vib_out'], vib_time.mean(dim=1)], dim=1)
+        elif mode == 'pp':
+            combined = outputs['physics']
         else:  # 'all'
             combined = torch.cat([outputs['ae_out'], outputs['vib_out'], outputs['physics']], dim=1)
 

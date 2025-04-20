@@ -1,3 +1,5 @@
+allowed_input_types = ['ae_spec', 'vib_spec', 'ae_spec+ae_features', 'vib_spec+vib_features', 'ae_spec+ae_features+vib_spec+vib_features', 'pp', 'all']
+
 import torch
 from torch.utils.data import Dataset, DataLoader
 import torch.nn as nn
@@ -238,6 +240,8 @@ def get_collate_fn(input_type='all'):
 def get_dataset(input_type: str = "all", train_mode: str = "classical"):
     data = load_init_data()
     grinding_data = data['grinding_data']
+    if input_type not in allowed_input_types:
+        raise ValueError(f"input_type must be one of {allowed_input_types}")
 
     # === Only need to modify the block line for new dataset ===
     # Only load necessary data based on input_type
