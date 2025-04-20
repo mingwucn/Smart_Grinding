@@ -9,7 +9,7 @@ lr=1e-5
 drop=0.4
 folds=10
 repeat=10
-batch_size=32
+batch_size=8
 dataset_mode='ram'
 gpu='cuda:3'
 num_workers=0
@@ -30,5 +30,5 @@ num_workers=0
 
 for input_type in "${allowed_input_types[@]}"; do
     echo "Training with input_type: $input_type"
-    python ./trainer.py --epochs 10 --batch_size $batch_size --learning_rate $lr --model_name "$input_type" --input_type "$input_type" --verbose_interval 10 --repeat $repeat --dataset_mode $dataset_mode --gpu $gpu --num_workers $num_workers 2>&1 | tee >(while IFS= read -r line; do echo "$(date '+%Y-%m-%d %H:%M:%S') $line" >>"log/train_${input_type}.txt"; done)
+    python ./trainer.py --epochs $epochs --batch_size $batch_size --learning_rate $lr --model_name "$input_type" --input_type "$input_type" --verbose_interval 10 --repeat $repeat --dataset_mode $dataset_mode --gpu $gpu --num_workers $num_workers 2>&1 | tee >(while IFS= read -r line; do echo "$(date '+%Y-%m-%d %H:%M:%S') $line" >>"log/train_${input_type}.txt"; done)
 done
