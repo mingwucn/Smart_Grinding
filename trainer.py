@@ -22,10 +22,7 @@ from torch.utils.data import Dataset, DataLoader, DistributedSampler
 from sklearn.preprocessing import StandardScaler, MinMaxScaler, StandardScaler,LabelEncoder
 
 sys.path.append("./utils")
-from utils.MLUtils import fade_in_out, standardize_tensor, CylinderDataset,LCVDataset, getKFoldCrossValidationIndexes, train_log, transform_ft, dataset_by_cross_validation, labels_by_classes, get_current_fold_and_hist_line_wised, LPBFDataset, TrainerBase, cv_trainer
-from utils.InterfaceDeclaration import LPBFPointData,LPBFData
-from utils.MLModels import SVMModel, CNN_Base_1D_Model, ResNet15_1D_Model
-
+from utils.MLUtils import TrainerBase, cv_trainer
 from MyModels import GrindingPredictor
 from MyDataset import allowed_input_types, MemoryDataset, get_dataset, get_collate_fn
 
@@ -67,11 +64,9 @@ if __name__ == "__main__":
     parser.add_argument('--num_workers', type=int, default=4, help=f'Worker number in the dataloader, default:4')
     parser.add_argument('--verbose_interval', type=int, default=2, help=f'Verbose interval, default:2')
     parser.add_argument('--ram_margin', type=int, default=0.2, help=f'RAM margin, default:0.2')
-    parser.add_argument('--train_mode', type=str, default="chunked", help=f'Train mode, options: [classical, chunked, ram], default:chunked')
+    parser.add_argument('--dataset_mode', type=str, default="classical", help=f'Dataset mode, options: [classical, chunked, ram], default:classical')
     
     args = parser.parse_args()
-
-
     if args.input_type not in allowed_input_types:
         raise ValueError(f"input_type must be one of {allowed_input_types}")
 
@@ -88,10 +83,10 @@ if __name__ == "__main__":
     print(f"Number of workers: {args.num_workers}")
     print(f"Verbose interval: {args.verbose_interval}")
     print(f"Random access memory margin: {args.ram_margin}")
-    print(f"Train model: {args.train_mode}")
+    print(f"Dataset model: {args.dataset_mode}")
     print(f"============= Settings =============\n")
 
-    dataset = get_dataset(input_type=args.input_type, train_mode=args.train_mode)
+    dataset = get_dataset(input_type=args.input_type, dataset_mode=args.dataset_mode)
     collate_fn = get_collate_fn(input_type=args.input_type)
 
     model_name = args.model_name
@@ -119,7 +114,7 @@ if __name__ == "__main__":
         task_type='regression', 
         verbose_interval=args.verbose_interval,
         safety_ram_margin=args.ram_margin,
-        train_mode=args.train_mode
+        dataset_mode=args.dataset_mode
         )
 
 ####

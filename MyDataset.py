@@ -4,7 +4,6 @@ import torch
 from torch.utils.data import Dataset, DataLoader
 import torch.nn as nn
 import numpy as np
-
 import sys
 sys.path.append("../utils/")
 
@@ -237,7 +236,7 @@ def get_collate_fn(input_type='all'):
 
     return collate_fn
 
-def get_dataset(input_type: str = "all", train_mode: str = "classical"):
+def get_dataset(input_type: str = "all", dataset_mode: str = "classical"):
     data = load_init_data()
     grinding_data = data['grinding_data']
     if input_type not in allowed_input_types:
@@ -260,9 +259,9 @@ def get_dataset(input_type: str = "all", train_mode: str = "classical"):
     dataset = GrindingDataset(grinding_data)
     # === Only need to modify the block for new dataset ===
 
-    if train_mode == "chunked":
+    if dataset_mode == "chunked":
         dataset = dataset
-    elif train_mode == "ram":
+    elif dataset_mode == "ram":
         full_data = []
         size_bytes = 0
         for item in dataset:
@@ -275,10 +274,10 @@ def get_dataset(input_type: str = "all", train_mode: str = "classical"):
         print(f"Estimated size of full_data: {size_gb:.2f} GB")
         dataset = MemoryDataset(full_data)
 
-    elif train_mode == "classical":
+    elif dataset_mode == "classical":
         dataset = dataset
     else:
-        raise ValueError(f"train_mode must be one of ['classical', 'chunked', 'ram'], but got {train_mode}")
+        raise ValueError(f"train_mode must be one of ['classical', 'chunked', 'ram'], but got {dataset_mode}")
 
     return dataset
 
