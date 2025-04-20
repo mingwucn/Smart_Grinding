@@ -88,9 +88,13 @@ if __name__ == "__main__":
     print(f"============= Settings =============\n")
 
     _time = time.time()
+    cpus = [32, 16, 2, 1]
+    percentage=[0.6, 0.8, 0.90, 1]
     dataset = get_dataset(input_type=args.input_type, dataset_mode=args.dataset_mode, cpus=cpus, percentage=percentage)
     collate_fn = get_collate_fn(input_type=args.input_type)
     print(f"Dataset loaded in {time.time()-_time:.2f} seconds")
+    print(f"Dataset size: {sys.getsizeof(dataset)}")
+    print("*" * 50)
 
     model_name = args.model_name
 

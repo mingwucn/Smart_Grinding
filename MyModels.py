@@ -106,6 +106,8 @@ class GrindingPredictor(nn.Module):
         Calculate the input dimension for the regressor based on the input_type.
         """
         input_type = self.input_type
+        if input_type == 'pp':
+            return 64  # Only PP output
         if input_type == 'ae_spec':
             return 64  # Only AE output
         elif input_type == 'vib_spec':
