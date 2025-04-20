@@ -80,7 +80,13 @@ class GrindingPredictor(nn.Module):
             outputs['physics'] = physics
 
         # Combine features based on mode
-        if mode == 'ae_spec':
+        if mode == 'pp':
+            combined = outputs['physics']
+        elif mode == 'ae_features':
+            combined = ae_time.mean(dim=1)
+        elif mode == 'vib_features':
+            combined = vib_time.mean(dim=1)
+        elif mode == 'ae_spec':
             combined = outputs['ae_out']
         elif mode == 'vib_spec':
             combined = outputs['vib_out']
@@ -88,14 +94,12 @@ class GrindingPredictor(nn.Module):
             combined = torch.cat([outputs['ae_out'], ae_time.mean(dim=1)], dim=1)
         elif mode == 'vib_spec+vib_features':
             combined = torch.cat([outputs['vib_out'], vib_time.mean(dim=1)], dim=1)
-        elif mode == 'ae_spec+ae_features+vib_spec+vib_features':
-            combined = torch.cat([outputs['ae_out'], ae_time.mean(dim=1), outputs['vib_out'], vib_time.mean(dim=1)], dim=1)
         elif mode == 'ae_features+pp':
             combined = torch.cat([ae_time.mean(dim=1),outputs['physics']], dim=1)
         elif mode == 'vib_features+pp':
             combined = torch.cat([vib_time.mean(dim=1),outputs['physics']], dim=1)
-        elif mode == 'pp':
-            combined = outputs['physics']
+        elif mode == 'ae_spec+ae_features+vib_spec+vib_features':
+            combined = torch.cat([outputs['ae_out'], ae_time.mean(dim=1), outputs['vib_out'], vib_time.mean(dim=1)], dim=1)
         elif mode == 'all':  # 'all'
             combined = torch.cat([outputs['ae_out'], outputs['vib_out'], outputs['physics']], dim=1)
 
@@ -116,10 +120,18 @@ class GrindingPredictor(nn.Module):
             return 64  # Only AE output
         elif input_type == 'vib_spec':
             return 64  # Only Vib output
+        if input_type == 'ae_features':
+            return 4  # Only AE output
+        elif input_type == 'vib_features':
+            return 4  # Only Vib output
         elif input_type == 'ae_spec+ae_features':
             return 64 + 4  # AE output + AE time features
         elif input_type == 'vib_spec+vib_features':
             return 64 + 4  # Vib output + Vib time features
+        elif input_type == 'ae_features+pp':
+            return 4 + 64
+        elif input_type == 'vib_features+pp':
+            return 4 + 64
         elif input_type == 'ae_spec+ae_features+vib_spec+vib_features':
             return 64 + 4 + 64 + 4  # AE output + AE time features + Vib output + Vib time features
         else:  # 'all'
