@@ -239,6 +239,7 @@ def get_dataset(input_type: str = "all", train_mode: str = "classical"):
     data = load_init_data()
     grinding_data = data['grinding_data']
 
+    # === Only need to modify the block line for new dataset ===
     # Only load necessary data based on input_type
     if 'spec' in input_type or input_type == 'all':
         print("Loading all spectrograms")
@@ -253,6 +254,7 @@ def get_dataset(input_type: str = "all", train_mode: str = "classical"):
     # grinding_data._load_all_spec_data()
 
     dataset = GrindingDataset(grinding_data)
+    # === Only need to modify the block for new dataset ===
 
     if train_mode == "chunked":
         dataset = dataset
