@@ -28,6 +28,7 @@ import dill as pickle
 from scipy.stats import norm
 from scipy.interpolate import interp1d
 from scipy.interpolate import make_interp_spline, BSpline
+from sklearn.preprocessing import StandardScaler, MinMaxScaler
 
 from utils.preprocessing import (
     centimeter,
@@ -101,6 +102,9 @@ class GrindingDataset(Dataset):
         self.required_components = set(input_type.split('+')) if input_type != 'all' else {'all'}
         self.loaded_data = self._select_data_components(grinding_data)
 
+        # Normalize the surface roughness (sr) values to [0, 1]
+        self._encoder()
+
     def _select_data_components(self, grinding_data):
         """Selectively store only needed data based on input_type"""
         data = {
@@ -119,7 +123,15 @@ class GrindingDataset(Dataset):
 
         if '_features' in self.required_components or 'all' in self.required_components:
             data['physical_data'] = grinding_data.physical_data
+        
+
         return data
+
+    def _encoder(self):
+        # Standardize the surface roughness to have mean 0 and variance 1
+        scaler = MinMaxScaler(feature_range=(0, 1))
+        _d = scaler.fit_transform(self.loaded_data['label'].reshape(-1, 1)).squeeze()
+        self.loaded_data['label'] = _d
 
     def __len__(self):
         return len(self.loaded_data['fn_names'])
