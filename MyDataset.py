@@ -103,7 +103,7 @@ class GrindingDataset(Dataset):
         self.loaded_data = self._select_data_components(grinding_data)
 
         # Normalize the surface roughness (sr) values to [0, 1]
-        self._encoder()
+        # self._encoder()
 
     def _select_data_components(self, grinding_data):
         """Selectively store only needed data based on input_type"""
@@ -113,7 +113,7 @@ class GrindingDataset(Dataset):
             'ec': self._normalize(grinding_data.ec),
             'st': self._normalize(grinding_data.st),
             'bid': self._normalize(grinding_data.bid),
-            'label': grinding_data.sr
+            'label': grinding_data.sr*1e3
         }
         if 'all' in self.required_components or '_spec' in self.required_components:
             data['spec_data'] = grinding_data.spec_data
@@ -129,9 +129,10 @@ class GrindingDataset(Dataset):
 
     def _encoder(self):
         # Standardize the surface roughness to have mean 0 and variance 1
-        scaler = MinMaxScaler(feature_range=(0, 1))
-        _d = scaler.fit_transform(self.loaded_data['label'].reshape(-1, 1)).squeeze()
-        self.loaded_data['label'] = _d
+        # scaler = MinMaxScaler(feature_range=(0, 1))
+        # _d = scaler.fit_transform(self.loaded_data['label'].reshape(-1, 1)).squeeze()
+        # self.loaded_data['label'] = _d
+        self.loaded_data['label'] = self.loaded_data['label']*1e3
 
     def __len__(self):
         return len(self.loaded_data['fn_names'])

@@ -11,7 +11,7 @@ folds=10
 repeat=10
 batch_size=8
 dataset_mode='ram'
-gpu='cuda:3'
+gpu='cuda:2'
 num_workers=0
 
 # for input_type in "${allowed_input_types[@]}"; do

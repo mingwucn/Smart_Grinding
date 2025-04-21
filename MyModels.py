@@ -41,7 +41,7 @@ class GrindingPredictor(nn.Module):
         self.vib_interpreter = FeatureInterpreter(spec_feat_dim=32, time_feat_dim=4)
 
         # Physics Processor
-        self.physics_encoder = nn.Sequential(
+        self.pp_encoder = nn.Sequential(
             nn.Linear(3, 64), nn.ReLU(), nn.LayerNorm(64)
         )
 
@@ -74,14 +74,14 @@ class GrindingPredictor(nn.Module):
             outputs['vib_out'] = vib_out
             outputs['vib_attn'] = vib_attn
 
-        # Physics Processing (if applicable)
+        # Process parameter (pp) Processing (if applicable)
         if 'all' in mode or 'pp' in mode:
-            physics = self.physics_encoder(batch["features_pp"])
-            outputs['physics'] = physics
+            pp = self.pp_encoder(batch["features_pp"])
+            outputs['pp'] = pp
 
         # Combine features based on mode
         if mode == 'pp':
-            combined = outputs['physics']
+            combined = outputs['pp']
         elif mode == 'ae_features':
             combined = ae_time.mean(dim=1)
         elif mode == 'vib_features':
@@ -95,13 +95,13 @@ class GrindingPredictor(nn.Module):
         elif mode == 'vib_spec+vib_features':
             combined = torch.cat([outputs['vib_out'], vib_time.mean(dim=1)], dim=1)
         elif mode == 'ae_features+pp':
-            combined = torch.cat([ae_time.mean(dim=1),outputs['physics']], dim=1)
+            combined = torch.cat([ae_time.mean(dim=1),outputs['pp']], dim=1)
         elif mode == 'vib_features+pp':
-            combined = torch.cat([vib_time.mean(dim=1),outputs['physics']], dim=1)
+            combined = torch.cat([vib_time.mean(dim=1),outputs['pp']], dim=1)
         elif mode == 'ae_spec+ae_features+vib_spec+vib_features':
             combined = torch.cat([outputs['ae_out'], ae_time.mean(dim=1), outputs['vib_out'], vib_time.mean(dim=1)], dim=1)
         elif mode == 'all':  # 'all'
-            combined = torch.cat([outputs['ae_out'], outputs['vib_out'], outputs['physics']], dim=1)
+            combined = torch.cat([outputs['ae_out'], outputs['vib_out'], outputs['pp']], dim=1)
 
         # Final prediction
         if self.interp:
