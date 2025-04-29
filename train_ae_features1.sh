@@ -2,8 +2,8 @@
 
 mkdir -p log
 
-# allowed_input_types=('all' 'ae_spec+ae_features+vib_spec+vib_features' 'vib_spec+vib_features' 'ae_spec+ae_features')
-allowed_input_types=('ae_spec+ae_features')
+allowed_input_types=('ae_features+pp')
+# allowed_input_types=('pp' 'ae_spec' 'ae_features'  'ae_features+pp')
 
 epochs=20
 lr=1e-5
@@ -12,7 +12,7 @@ folds=10
 repeat=10
 batch_size=8
 dataset_mode='ram'
-gpu='cuda:2'
+gpu='cpu'
 num_workers=0
 
 # for input_type in "${allowed_input_types[@]}"; do
@@ -34,4 +34,4 @@ for input_type in "${allowed_input_types[@]}"; do
     python ./trainer.py --epochs $epochs --batch_size $batch_size --learning_rate $lr --model_name "$input_type" --input_type "$input_type" --verbose_interval 10 --repeat $repeat --dataset_mode $dataset_mode --gpu $gpu --num_workers $num_workers 2>&1 | tee >(while IFS= read -r line; do echo "$(date '+%Y-%m-%d %H:%M:%S') $line" >>"log/train_${input_type}.txt"; done)
 done
 
-# pkill -u ming
+pkill -u ming
