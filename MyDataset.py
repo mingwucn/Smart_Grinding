@@ -79,7 +79,7 @@ project_dir = os.path.join(data_dir, *project_name)
 dataDir_ae = os.path.join(project_dir,"AE")
 dataDir_vib = os.path.join(project_dir,"Vibration")
 
-allowed_input_types = ['ae_spec', 'vib_spec', 'ae_features','vib_features', 'ae_spec+ae_features', 'vib_spec+vib_features', 'ae_spec+ae_features+vib_spec+vib_features', 'ae_features+pp', 'vib_features+pp','pp', 'all']
+allowed_input_types = ['ae_spec', 'vib_spec', 'ae_features','vib_features', 'ae_spec+ae_features', 'vib_spec+vib_features', 'ae_spec+ae_features+vib_spec+vib_features', 'ae_features+pp', 'vib_features+pp','pp', 'ae_spec+vib_spec', 'ae_features+vib_features', 'ae_features+vib_features+pp' 'all']
 
 logical_threads = psutil.cpu_count(logical=True)
 physical_threads = psutil.cpu_count(logical=False)

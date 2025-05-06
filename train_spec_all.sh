@@ -3,7 +3,7 @@
 mkdir -p log
 
 # allowed_input_types=('all' 'ae_spec+ae_features+vib_spec+vib_features' 'vib_spec+vib_features' 'ae_spec+ae_features')
-allowed_input_types=('ae_spec+ae_features')
+allowed_input_types=('ae_spec+vib_spec' 'ae_features' 'ae_features+vib_features' 'ae_features+vib_features+pp')
 
 epochs=20
 lr=1e-5
@@ -12,7 +12,7 @@ folds=10
 repeat=10
 batch_size=8
 dataset_mode='ram'
-gpu='cuda:2'
+gpu='cuda:3'
 num_workers=0
 
 # for input_type in "${allowed_input_types[@]}"; do
