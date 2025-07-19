@@ -1,0 +1,12 @@
+input_combination,test_accuracy
+pp,0.0
+vib_spec,0.0
+ae_spec,0.0
+vib_features+pp,0.0
+ae_features,0.0
+vib_features,0.0
+all,0.0
+vib_spec+vib_features,0.0
+ae_spec+ae_features+vib_spec+vib_features,0.0
+ae_features+pp,0.0
+ae_spec+ae_features,0.0
