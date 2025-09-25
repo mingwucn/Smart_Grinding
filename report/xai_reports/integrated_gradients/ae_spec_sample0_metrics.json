@@ -1,0 +1,14 @@
+{
+  "features_pp_max": 0.0,
+  "features_pp_min": 0.0,
+  "features_pp_mean": 0.0,
+  "features_pp_std": 0.0,
+  "spec_ae_max": 5.276815954857739e-06,
+  "spec_ae_min": -4.479307335714111e-06,
+  "spec_ae_mean": 9.8547232596502e-08,
+  "spec_ae_std": 1.0190493640038767e-06,
+  "features_ae_max": 7.248064775922103e-06,
+  "features_ae_min": -2.9775068469461985e-05,
+  "features_ae_mean": -1.185857763630338e-05,
+  "features_ae_std": 1.5956915376591496e-05
+}
