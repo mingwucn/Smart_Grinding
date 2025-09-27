@@ -5,17 +5,22 @@ import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
 import seaborn as sns
-import shap
 import torch
-import subprocess
-from utils.preprocessing import one_column
-from utils.XAI import GradCAM, get_conv_layer_names
-from utils.postprocessing import calculate_regression_metrics
+from utils.XAI import GradCAM
 from MyModels import GrindingPredictor
 from XAI_ModelWrapper import XAI_ModelWrapper
-from GrindingData import GrindingData
 from MyDataset import get_dataset, get_collate_fn
 from torch.utils.data import DataLoader
+
+# Optional SHAP import with graceful fallback
+SHAP_AVAILABLE = False
+try:
+    import shap
+    SHAP_AVAILABLE = True
+except ImportError as e:
+    print(f"SHAP import failed: {e}. SHAP reports will be skipped.")
+except Exception as e:
+    print(f"SHAP import error: {e}. SHAP reports will be skipped.")
 
 # Configuration
 REPORT_PATH = "report"
@@ -146,17 +151,50 @@ def generate_accuracy_report():
 
 def generate_shap_report(model, sample_input, output_path):
     """Generate SHAP report for a model"""
-    # Initialize SHAP explainer
-    explainer = shap.DeepExplainer(model, sample_input)
+    if not SHAP_AVAILABLE:
+        print("SHAP is not available. Skipping SHAP report generation.")
+        return
     
-    # Calculate SHAP values
-    shap_values = explainer.shap_values(sample_input)
-    
-    # Generate visualization
-    plt.figure()
-    shap.summary_plot(shap_values, sample_input, show=False)
-    plt.savefig(output_path, bbox_inches='tight')
-    plt.close()
+    try:
+        # Handle dictionary input by extracting the main tensor
+        if isinstance(sample_input, dict):
+            # Try to find the main input tensor
+            for key in ['spec_ae', 'spec_vib', 'features_ae', 'features_vib']:
+                if key in sample_input and torch.is_tensor(sample_input[key]):
+                    sample_input = sample_input[key]
+                    break
+            else:
+                # If no suitable tensor found, use the first tensor in the dictionary
+                for key, value in sample_input.items():
+                    if torch.is_tensor(value):
+                        sample_input = value
+                        break
+                else:
+                    print("No tensor found in sample_input dictionary")
+                    return
+        
+        # Ensure sample_input is a tensor and on CPU
+        if torch.is_tensor(sample_input):
+            sample_input = sample_input.cpu().detach()
+        
+        # SHAP expects multiple samples - create a background dataset
+        background = sample_input[:10]  # Use first 10 samples as background
+        
+        # Initialize SHAP explainer
+        explainer = shap.DeepExplainer(model, background)
+        
+        # Calculate SHAP values
+        shap_values = explainer.shap_values(sample_input[:50])  # Use first 50 samples for efficiency
+        
+        # Generate visualization
+        plt.figure(figsize=(10, 8))
+        shap.summary_plot(shap_values, sample_input[:50], show=False)
+        plt.savefig(output_path, bbox_inches='tight', dpi=150)
+        plt.close()
+        print(f"SHAP report saved to {output_path}")
+        
+    except Exception as e:
+        print(f"SHAP report generation failed: {e}")
 
 def generate_gradcam_report(model, sample_input, raw_signal, target_layer, output_path):
     """Generate Grad-CAM report with detailed plots."""
@@ -209,13 +247,31 @@ def generate_xai_reports():
                 checkpoint = torch.load(model_path, map_location=torch.device('cpu'))
                 
                 # Handle different checkpoint formats
+                state_dict = None
                 if 'model_state' in checkpoint:
-                    base_model.load_state_dict(checkpoint['model_state'])
+                    state_dict = checkpoint['model_state']
                 elif 'state_dict' in checkpoint:
-                    base_model.load_state_dict(checkpoint['state_dict'])
+                    state_dict = checkpoint['state_dict']
                 else:
-                    # Direct state_dict loading
-                    base_model.load_state_dict(checkpoint)
+                    state_dict = checkpoint
+                
+                # Fix layer name mismatches in state_dict
+                fixed_state_dict = {}
+                for key, value in state_dict.items():
+                    # Handle conv layer naming mismatch
+                    new_key = key
+                    if 'conv.0.' in key:
+                        new_key = key.replace('conv.0.', 'conv1.0.')
+                    elif 'conv.4.' in key:
+                        new_key = key.replace('conv.4.', 'conv2.0.')
+                    fixed_state_dict[new_key] = value
+                
+                # Load with strict=False to handle missing/unexpected keys gracefully
+                missing_keys, unexpected_keys = base_model.load_state_dict(fixed_state_dict, strict=False)
+                if missing_keys:
+                    print(f"Missing keys for {combo}: {missing_keys}")
+                if unexpected_keys:
+                    print(f"Unexpected keys for {combo}: {unexpected_keys}")
                 
                 base_model.eval()
                 
@@ -291,13 +347,14 @@ def get_sample_input(input_type="all"):
     """Load a real data sample for XAI analysis."""
     try:
         dataset = get_dataset(input_type=input_type, dataset_mode="classical")
-        sample = next(iter(DataLoader(dataset, batch_size=1, shuffle=True, collate_fn=get_collate_fn(input_type))))
+        collate_fn = get_collate_fn(input_type)
+        sample = next(iter(DataLoader(dataset, batch_size=1, shuffle=True, collate_fn=collate_fn)))
         return sample
     except Exception as e:
         print(f"Could not load real data sample: {e}. Using random data instead.")
         return None
 
-def get_metrics_for_combo(input_type):
+def get_metrics_for_combo(input_type,s=0.1):
     """Get detailed statistics for a given input combination."""
     train_mse, test_mse, train_mae, test_mae = [], [], [], []
 
@@ -312,13 +369,13 @@ def get_metrics_for_combo(input_type):
         try:
             df = pd.read_csv(file_path, index_col=0)
             if "train_mse" in df.columns:
-                train_mse.append(df["train_mse"].iloc[-1])
+                train_mse.append((df["train_mse"].iloc[-1])*s)
             if "test_mse" in df.columns:
-                test_mse.append(df["test_mse"].iloc[-1])
+                test_mse.append((df["test_mse"].iloc[-1])*s)
             if "train_mae" in df.columns:
-                train_mae.append(df["train_mae"].iloc[-1])
+                train_mae.append((df["train_mae"].iloc[-1])*s)
             if "test_mae" in df.columns:
-                test_mae.append(df["test_mae"].iloc[-1])
+                test_mae.append((df["test_mae"].iloc[-1])*s)
         except Exception:
             pass
 

@@ -60,6 +60,9 @@ Consider adding: 'pp_only', 'ae_all_only' (spec+features), 'vib_all_only' (spec+
 
 
 - [x] Output: MAE and MSE (mean and std dev) for each combination across all folds/repeats.
+  - Code: postprocessing/accuracy.ipynb
+  - image: plt.savefig(os.path.join(os.pardir,"Grinding Fusion","images","raw_MSE_vs_model.png"),dpi=300)
+
 
 
 
