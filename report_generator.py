@@ -267,58 +267,64 @@ def generate_xai_reports():
                     fixed_state_dict[new_key] = value
                 
                 # Load with strict=False to handle missing/unexpected keys gracefully
-                missing_keys, unexpected_keys = base_model.load_state_dict(fixed_state_dict, strict=False)
-                if missing_keys:
-                    print(f"Missing keys for {combo}: {missing_keys}")
-                if unexpected_keys:
-                    print(f"Unexpected keys for {combo}: {unexpected_keys}")
-                
-                base_model.eval()
-                
-                # Wrap model for XAI compatibility
-                model = XAI_ModelWrapper(base_model)
-                model.eval()
-                
-                # Generate SHAP report
                 try:
-                    # SHAP expects multiple samples - create a batch of 10
-                    sample_input_dict = get_sample_input(combo)
-                    if sample_input_dict is not None:
-                        generate_shap_report(
-                            model=model,
-                            sample_input=sample_input_dict,
-                            output_path=os.path.join(REPORT_PATH, "xai_reports", f"shap_{combo}.png")
-                        )
-                except Exception as e:
-                    print(f"SHAP report generation failed for {combo}: {str(e)}")
-
-                # Generate Grad-CAM report
-                if "spec" in combo:
+                    missing_keys, unexpected_keys = base_model.load_state_dict(fixed_state_dict, strict=False)
+                    if missing_keys:
+                        print(f"Missing keys for {combo}: {missing_keys}")
+                    if unexpected_keys:
+                        print(f"Unexpected keys for {combo}: {unexpected_keys}")
+                    
+                    base_model.eval()
+                    
+                    # Wrap model for XAI compatibility
+                    model = XAI_ModelWrapper(base_model)
+                    model.eval()
+                    
+                    # Generate SHAP report
                     try:
+                        # SHAP expects multiple samples - create a batch of 10
                         sample_input_dict = get_sample_input(combo)
-                        if sample_input_dict is None:
-                            continue
-                        
-                        if "ae" in combo:
-                            target_layer = 'base_model.ae_spec_processor.conv.0'
-                            raw_signal = sample_input_dict['spec_ae'][0,0,0].numpy()
-                            sample_input = sample_input_dict['spec_ae']
-                        elif "vib" in combo:
-                            target_layer = 'base_model.vib_spec_processor.conv.0'
-                            raw_signal = sample_input_dict['spec_vib'][0,0,0].numpy()
-                            sample_input = sample_input_dict['spec_vib']
-                        else:
-                            continue
-                        
-                        generate_gradcam_report(
-                            model=model,
-                            sample_input=sample_input,
-                            raw_signal=raw_signal,
-                            target_layer=target_layer,
-                            output_path=os.path.join(REPORT_PATH, "xai_reports", f"gradcam_{combo}.png")
-                        )
+                        if sample_input_dict is not None:
+                            generate_shap_report(
+                                model=model,
+                                sample_input=sample_input_dict,
+                                output_path=os.path.join(REPORT_PATH, "xai_reports", f"shap_{combo}.png")
+                            )
                     except Exception as e:
-                        print(f"Grad-CAM report generation failed for {combo}: {str(e)}")
+                        print(f"SHAP report generation failed for {combo}: {str(e)}")
+
+                    # Generate Grad-CAM report
+                    if "spec" in combo:
+                        try:
+                            sample_input_dict = get_sample_input(combo)
+                            if sample_input_dict is None:
+                                continue
+                            
+                            if "ae" in combo:
+                                target_layer = 'base_model.ae_spec_processor.conv.0'
+                                raw_signal = sample_input_dict['spec_ae'][0,0,0].numpy()
+                                sample_input = sample_input_dict['spec_ae']
+                            elif "vib" in combo:
+                                target_layer = 'base_model.vib_spec_processor.conv.0'
+                                raw_signal = sample_input_dict['spec_vib'][0,0,0].numpy()
+                                sample_input = sample_input_dict['spec_vib']
+                            else:
+                                continue
+                            
+                            generate_gradcam_report(
+                                model=model,
+                                sample_input=sample_input,
+                                raw_signal=raw_signal,
+                                target_layer=target_layer,
+                                output_path=os.path.join(REPORT_PATH, "xai_reports", f"gradcam_{combo}.png")
+                            )
+                        except Exception as e:
+                            print(f"Grad-CAM report generation failed for {combo}: {str(e)}")
+                except RuntimeError as e:
+                    if "size mismatch" in str(e):
+                        print(f"Model architecture mismatch for {combo}: {e}. Skipping XAI generation.")
+                    else:
+                        raise e
             except Exception as e:
                 print(f"Error loading model for {combo}: {str(e)}")
 
