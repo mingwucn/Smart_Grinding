@@ -58,11 +58,49 @@ Finalize Model Architecture:
 'vib_features+pp'
 Consider adding: 'pp_only', 'ae_all_only' (spec+features), 'vib_all_only' (spec+features), 'all_sensors_no_pp', 'full_model_no_St_loss'.
 
+allowed_input_types=[
+    'ae_spec',
+    'ae_features',
+    'ae_features+pp',
+    'ae_spec+ae_features',
+
+    'vib_spec',
+    'vib_features',
+    'vib_features+pp',
+    'vib_spec+vib_features',
+
+    'ae_spec+ae_features+vib_spec+vib_features',
+
+    'all',
+]
+
 
 - [x] Output: MAE and MSE (mean and std dev) for each combination across all folds/repeats.
   - Code: postprocessing/post_accuracy.ipynb
-  - image: plt.savefig(os.path.join(os.pardir,"Grinding Fusion","images","raw_MSE_vs_model.png"),dpi=300)
+  - image: 
+    - plt.savefig(os.path.join(os.pardir,"Grinding Fusion","images","raw_MAE_vs_model.png"),dpi=300)
+    - plt.savefig(os.path.join(os.pardir,"Grinding Fusion","images","raw_MSE_vs_model.png"),dpi=300)
 
+- [ ] Model Performance Across Physical Regimes (Replaces simple MAE reporting)
+  This figure will demonstrate not just that the model is accurate, but where and why it is accurate, linking performance directly to the underlying physics.
+
+  - [ ] Panel A: Prediction vs. Ground Truth with Physical Context.
+
+  Description: A time-series plot showing the model's predicted surface roughness (R a ​) overlaid on the measured ground truth. The crucial addition is a color-coded background that indicates the dominant physical regime at each moment, derived from your feature data. For example, use a color gradient where blue represents ductile-dominated mode (BDI>1) and red represents brittle-fracture mode (BDI<1).
+
+  Caption Insight: "The model demonstrates high fidelity in predicting Ra ​(MAE = X.X). Notably, prediction accuracy remains robust during transitions between ductile (blue) and brittle (red) machining regimes, showcasing the model's ability to capture non-stationary dynamics."
+
+- [ ] Panel B: Error Analysis vs. Brittle-Ductile Indicator (BDI).
+
+  Description: A scatter plot where the x-axis is the BDI and the y-axis is the absolute prediction error (∣R a,pred ​ −R a,true ​ ∣). Each point represents a data sample.
+
+  Caption Insight: "Prediction error remains low and evenly distributed across the BDI spectrum, including the critical transition point around BDI=1. This confirms the model has not merely memorized specific states but has learned the physical continuum of the ductile-to-brittle transition."
+
+  - [ ] Panel C: Error Analysis vs. Thermal Severity (S t ​).
+
+  Description: A similar scatter plot, but with the calculated Thermal Severity (S t ​) on the x-axis and absolute prediction error on the y-axis.
+
+  Caption Insight: "The inclusion of the physics-informed loss function effectively contains prediction errors even at high thermal severities (S t​ →1), a region where conventional models often fail due to unmodeled thermal softening and material phase changes."
 
 
 
