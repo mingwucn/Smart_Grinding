@@ -60,9 +60,7 @@ class GrindingPredictor(nn.Module):
 
         # AE Processing (if applicable)
         if 'ae' in mode or 'all' in mode:
-            # Extract tensor from dictionary if needed
-            ae_spec_input = batch["spec_ae"] if not isinstance(batch["spec_ae"], dict) else batch["spec_ae"]['spec_ae']
-            ae_spec = self.ae_spec_processor(ae_spec_input)  # [batch, seq_len, 32]
+            ae_spec = self.ae_spec_processor(batch["spec_ae"])  # [batch, seq_len, 32]
             ae_time = batch["features_ae"]  # [batch, seq_len, 4]
             ae_out, ae_attn = self.ae_interpreter(ae_spec, ae_time)
             outputs['ae_out'] = ae_out
@@ -70,9 +68,7 @@ class GrindingPredictor(nn.Module):
 
         # Vib Processing (if applicable)
         if 'vib' in mode or 'all' in mode:
-            # Extract tensor from dictionary if needed
-            vib_spec_input = batch["spec_vib"] if not isinstance(batch["spec_vib"], dict) else batch["spec_vib"]['spec_vib']
-            vib_spec = self.vib_spec_processor(vib_spec_input)  # [batch, seq_len, 32]
+            vib_spec = self.vib_spec_processor(batch["spec_vib"])  # [batch, seq_len, 32]
             vib_time = batch["features_vib"]  # [batch, seq_len, 4]
             vib_out, vib_attn = self.vib_interpreter(vib_spec, vib_time)
             outputs['vib_out'] = vib_out
@@ -177,31 +173,17 @@ class GrindingPredictor(nn.Module):
 class SpectrogramProcessor(nn.Module):
     def __init__(self, in_channels, out_dim=32):
         super().__init__()
-        self.conv1 = nn.Sequential(
-            nn.Conv2d(in_channels, 32, kernel_size=3, padding=1),
+        self.conv = nn.Sequential(
+            nn.Conv2d(in_channels, 8, kernel_size=3, stride=2),
             nn.ReLU(),
-            nn.MaxPool2d(2)
+            nn.AdaptiveAvgPool2d((4, 4)),
+            nn.Flatten(),
+            nn.Linear(8 * 4 * 4, out_dim),
         )
-        self.conv2 = nn.Sequential(
-            nn.Conv2d(32, 32, kernel_size=3, padding=1),
-            nn.ReLU(),
-            nn.MaxPool2d(2)
-        )
-        # Adaptive pooling to (1,1) preserves channel dimension
-        self.adaptive_pool = nn.AdaptiveAvgPool2d((1, 1))
-        self.flatten = nn.Flatten()
-        # Input features should be 32 (number of channels)
-        self.linear = nn.Linear(32, out_dim)
-        
+
     def forward(self, x):
         # x: [batch, seq_len, C, H, W]
         batch_size, seq_len = x.shape[:2]
-        x = x.view(batch_size * seq_len, *x.shape[2:])  # Merge batch and seq
-        
-        x = self.conv1(x)
-        x = self.conv2(x)
-        x = self.adaptive_pool(x)
-        x = self.flatten(x)  # Flatten to [batch*seq, channels]
-        features = self.linear(x)
-        
+        x = x.view(-1, *x.shape[2:])  # Merge batch and seq
+        features = self.conv(x)
         return features.view(batch_size, seq_len, -1)
