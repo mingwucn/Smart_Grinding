@@ -234,7 +234,7 @@ def plot_time_series_with_physics(true_values, predictions, bdi_values, model_ty
     
     # Customize plot
     ax.set_xlabel('Sample Index')
-    ax.set_ylabel('Surface Roughness Ra ($\mu$m)')
+    ax.set_ylabel('Surface Roughness Ra ($\\mu$m)')
     ax.set_title(f'Prediction vs Ground Truth with Physical Context\nModel: {model_type}')
     
     # Create legend with regime information
@@ -267,6 +267,105 @@ def plot_time_series_with_physics(true_values, predictions, bdi_values, model_ty
              style='italic', wrap=True)
     
     plt.tight_layout(rect=(0, 0.05, 1, 0.95))  # Make room for caption
+    
+    return fig, ax
+
+def create_physics_informed_plot(model_type="vib_features+pp", save_plot=True, show_plot=True):
+    """
+    Create a standalone time-series plot showing predicted vs ground truth surface roughness
+    with background colored by BDI regime.
+    
+    Parameters:
+    - model_type: Type of model to use for predictions (default: "vib_features+pp")
+    - save_plot: Whether to save the plot to file (default: True)
+    - show_plot: Whether to display the plot (default: True)
+    
+    Returns:
+    - fig, ax: Matplotlib figure and axes objects
+    """
+    print(f"=== Creating Physics-Informed Plot for {model_type} ===")
+    
+    # Load the trained model
+    model = load_trained_model(model_type, fold=0)
+    if model is None:
+        print(f"Failed to load model for {model_type}")
+        return None, None
+    
+    # Load dataset based on model type
+    from MyDataset import get_dataset
+    try:
+        dataset = get_dataset(input_type=model_type, dataset_mode="classical")
+    except Exception as e:
+        print(f"Error loading dataset for {model_type}: {e}")
+        return None, None
+    
+    # Generate predictions
+    predictions = []
+    true_values = []
+    bdi_values = []
+    
+    print(f"Generating predictions using {model_type} model...")
+    with torch.no_grad():
+        for i in range(min(100, len(dataset))):  # Use first 100 samples for efficiency
+            try:
+                item = dataset[i]
+                
+                # Prepare input batch
+                batch = {}
+                for key in ['spec_ae', 'spec_vib', 'features_ae', 'features_vib', 'features_pp']:
+                    if key in item:
+                        batch[key] = item[key].unsqueeze(0)  # Add batch dimension
+                
+                # Add lengths if available
+                if 'features_ae' in item:
+                    batch['ae_lengths'] = torch.tensor([item['features_ae'].shape[0]])
+                if 'features_vib' in item:
+                    batch['vib_lengths'] = torch.tensor([item['features_vib'].shape[0]])
+                
+                # Generate prediction
+                prediction = model(batch)
+                if isinstance(prediction, tuple):
+                    prediction = prediction[0]  # Handle case where model returns (prediction, attention)
+                
+                predictions.append(prediction.item())
+                true_values.append(item['label'].item())
+                
+                # Extract BDI (3rd element in features_pp: [ec, st, bid])
+                if 'features_pp' in item:
+                    bdi_values.append(item['features_pp'][2].item())
+                else:
+                    # If no features_pp, use default BDI value
+                    bdi_values.append(1.0)
+                    
+            except Exception as e:
+                print(f"Error processing sample {i} for {model_type}: {e}")
+                continue
+    
+    if len(predictions) == 0:
+        print(f"No predictions generated for {model_type}")
+        return None, None
+    
+    # Convert to numpy arrays
+    true_values = np.array(true_values)
+    predictions = np.array(predictions)
+    bdi_values = np.array(bdi_values)
+    
+    print(f"Generated {len(predictions)} predictions for {model_type}")
+    print(f"MAE: {np.mean(np.abs(true_values - predictions)):.3f} μm")
+    
+    # Create the plot
+    fig, ax = plot_time_series_with_physics(true_values, predictions, bdi_values, model_type)
+    
+    # Save the plot if requested
+    if save_plot:
+        output_filename = f"prediction_time_series_{model_type.replace('+', '_plus_')}.png"
+        output_path = os.path.join(os.path.dirname(__file__), output_filename)
+        plt.savefig(output_path, dpi=300, bbox_inches='tight')
+        print(f"Plot saved to: {output_path}")
+    
+    # Show the plot if requested
+    if show_plot:
+        plt.show()
     
     return fig, ax
 
@@ -308,4 +407,5 @@ def main():
     print("\n=== All plots generated successfully ===")
 
 if __name__ == "__main__":
-    main()
+    # Example usage: Create a single plot for a specific model
+    create_physics_informed_plot(model_type="ae_features", save_plot=True, show_plot=True)
