@@ -314,7 +314,7 @@ def get_dataset(input_type: str = "all", dataset_mode: str = "classical",cpus = 
         keys = list(idx.keys())
         for _c,_k in zip(cpus[:-1], keys[:-1]):
             _idx = idx[_k]
-            ramDataLoader = DataLoader(Subset(dataset, np.array(_idx)), batch_size=1, shuffle=False, num_workers=int(_c), pin_memory=False,prefetch_factor=1)
+            ramDataLoader = DataLoader(Subset(dataset, np.array(_idx)), batch_size=1, shuffle=False, num_workers=int(_c), pin_memory=False,prefetch_factor=None if int(_c) == 0 else 1)
             for i,item in tqdm(enumerate(ramDataLoader),desc=f'Loading {_k} data for {_c} threads'):
                 full_data.append(item)
                 # size_bytes += sys.getsizeof(item)
