@@ -69,6 +69,8 @@ allowed_input_types=[
     'vib_features+pp',
     'vib_spec+vib_features',
 
+    'ae_spec+vib_spec',
+
     'ae_spec+ae_features+vib_spec+vib_features',
 
     'all',

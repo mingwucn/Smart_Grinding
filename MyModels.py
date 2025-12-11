@@ -136,6 +136,12 @@ class GrindingPredictor(nn.Module):
             return 64 + 4  # Vib output + Vib time features
         elif input_type == 'ae_spec+vib_spec':
             return 64 + 64  # AE spec output + Vib spec output
+        elif input_type == 'vib_features+ae_features+pp':
+            return 4 + 4 + 64  
+        elif input_type == 'ae_features+vib_features':
+            return 4 + 4  
+        elif input_type == 'ae_features+vib_features+pp':
+            return 4 + 4 + 64
         elif input_type == 'ae_features+pp':
             return 4 + 64
         elif input_type == 'vib_features+pp':
