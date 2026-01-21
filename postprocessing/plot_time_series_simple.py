@@ -10,8 +10,8 @@ import matplotlib as mpl
 
 # Add parent directory to path to import GrindingData, MyDataset, MyModels, MyCustomDataset, MyCustomModels
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-from MyCustomDataset import get_custom_dataset
-from MyCustomModels import MyCustomGrindingPredictor as GrindingPredictor
+from MyDataset import get_dataset
+from MyModels import GrindingPredictor
 from GrindingData import GrindingData
 from MyDataset import project_dir, allowed_input_types
 

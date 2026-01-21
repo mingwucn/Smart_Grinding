@@ -36,23 +36,6 @@ from MyDataset import project_dir, allowed_input_types # Import allowed_input_ty
 plt.rcParams['figure.constrained_layout.use'] = True
 mpl.rcParams['figure.dpi'] = 300
 
-# Allowed input types as specified (from original MyDataset)
-allowed_input_types = [
-    'ae_spec',
-    'ae_features',
-    'ae_features+pp',
-    'ae_spec+ae_features',
-
-    'vib_spec',
-    'vib_features',
-    'vib_features+pp',
-    'vib_spec+vib_features',
-
-    'ae_spec+ae_features+vib_spec+vib_features',
-
-    'all',
-]
-
 def load_trained_model(model_type="ae_features", fold=0):
     """
     Load a trained model from lfs/checkpoints directory.

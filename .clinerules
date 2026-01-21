@@ -1,0 +1,52 @@
+# SMART GRINDING PROJECT RULES
+
+This project focuses on AI-driven monitoring and prediction for grinding processes, specifically surface roughness ($R_a$) prediction using Acoustic Emission (AE) and Vibration sensors, combined with physics-informed machine learning.
+
+## 🚨 PROJECT CONTEXT
+- **Goal**: Predict surface roughness ($R_a$) and monitor grinding states (ductile/brittle transitions, thermal severity).
+- **Sensors**: Acoustic Emission (AE), Vibration.
+- **Physics-Informed**: Incorporates Brittle-Ductile Indicator (BDI) and Thermal Severity ($S_t$) into the learning process.
+- **Models**: GRU-Attention, Physics-Aware Temporal Fusion Transformer (PA-TFT).
+- **Output**: Academic publications (LaTeX), high-quality visualizations, and explainable AI (SHAP, Attention).
+
+## 📁 CORE DIRECTORY STRUCTURE
+- **Root**: Training scripts (`trainer.py`, `GrindingData.py`), models (`MyModels.py`), and experiment notebooks.
+- **utils/**: Core logic for data handling, preprocessing, and model utilities.
+- **postprocessing/**: Scripts for accuracy metrics, plot generation, and results analysis.
+- **tests/**: Validation scripts for models and XAI components.
+- **Grinding Fusion/** & **Contextual Grinding/**: LaTeX manuscript folders (managed as git submodules or directories).
+- **memory-bank/**: Technical documentation and project progress.
+- **description/**: High-level project definition.
+
+## ⚙️ DEVELOPMENT WORKFLOW
+
+### 1. Data Handling
+- Use `GrindingData.py` for dataset preparation.
+- Support multiple input types: `ae_spec`, `ae_features`, `vib_spec`, `vib_features`, `pp` (physical parameters).
+- Ensure reproducibility by fixing seeds and documenting dataset splits.
+
+### 2. Model Development
+- Models should be defined in `MyModels.py`.
+- Training logic should be in `trainer.py`.
+- Physics-informed losses (BDI, $S_t$) should be clearly integrated and logged.
+
+### 3. Verification & Metrics
+- Evaluate using MAE and MSE across 10x10 Cross-Validation.
+- Generate standard plots: Prediction vs. Ground Truth (with BDI context), Error vs. BDI, Error vs. $S_t$.
+- All plots must be saved to the corresponding paper's `images/` folder.
+
+### 4. Publication Support
+- Use `postprocessing/` scripts to generate publication-ready figures (300 DPI, appropriate font sizes).
+- Update LaTeX manuscripts when results change.
+- Maintain `ref.bib` for citations.
+
+## 🎯 SPECIFIC CODING STANDARDS
+- **PyTorch**: Follow established patterns in `MyModels.py`. Use GPU acceleration where possible.
+- **Visualization**: Use `matplotlib` and `seaborn`. Ensure figures are professional and captioned correctly.
+- **Explainability**: Integrate SHAP and Attention visualization for all major model variants.
+- **Documentation**: Keep `memory-bank` updated with current progress and architectural decisions.
+
+## 🔗 REFERENCE
+- Primary requirements: `description/master.md`
+- Implementation TODOs: `README.md`
+- Physics models: `Physical_informed.ipynb`
