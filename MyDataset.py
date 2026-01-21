@@ -185,31 +185,30 @@ class GrindingDataset(Dataset):
 
         # Conditionally include other components
         if "ae" in self.required_components or "all" in self.required_components:
-            item["features_ae"] = torch.tensor(
-                [
-                    self._normalize(
-                        self.loaded_data["physical_data"][
-                            self.loaded_data["fn_names"][idx]
-                        ]["wavelet_energy_broad"]
-                    ),
-                    self._normalize(
-                        self.loaded_data["physical_data"][
-                            self.loaded_data["fn_names"][idx]
-                        ]["wavelet_energy_narrow"]
-                    ),
-                    self._normalize(
-                        self.loaded_data["physical_data"][
-                            self.loaded_data["fn_names"][idx]
-                        ]["burst_rate_narrow"]
-                    ),
-                    self._normalize(
-                        self.loaded_data["physical_data"][
-                            self.loaded_data["fn_names"][idx]
-                        ]["burst_rate_broad"]
-                    ),
-                ],
-                dtype=torch.float32,
-            )
+            # Optimize: Convert list of arrays to single numpy array first
+            features_ae_list = [
+                self._normalize(
+                    self.loaded_data["physical_data"][
+                        self.loaded_data["fn_names"][idx]
+                    ]["wavelet_energy_broad"]
+                ),
+                self._normalize(
+                    self.loaded_data["physical_data"][
+                        self.loaded_data["fn_names"][idx]
+                    ]["wavelet_energy_narrow"]
+                ),
+                self._normalize(
+                    self.loaded_data["physical_data"][
+                        self.loaded_data["fn_names"][idx]
+                    ]["burst_rate_narrow"]
+                ),
+                self._normalize(
+                    self.loaded_data["physical_data"][
+                        self.loaded_data["fn_names"][idx]
+                    ]["burst_rate_broad"]
+                ),
+            ]
+            item["features_ae"] = torch.tensor(np.array(features_ae_list), dtype=torch.float32)
 
             item["spec_ae"] = torch.tensor(
                 self.loaded_data["spec_data"][self.loaded_data["fn_names"][idx]][
@@ -218,31 +217,29 @@ class GrindingDataset(Dataset):
             )
 
         if "vib" in self.required_components or "all" in self.required_components:
-            item["features_vib"] = torch.tensor(
-                [
-                    self._normalize(
-                        self.loaded_data["physical_data"][
-                            self.loaded_data["fn_names"][idx]
-                        ]["env_kurtosis_x"]
-                    ),
-                    self._normalize(
-                        self.loaded_data["physical_data"][
-                            self.loaded_data["fn_names"][idx]
-                        ]["env_kurtosis_y"]
-                    ),
-                    self._normalize(
-                        self.loaded_data["physical_data"][
-                            self.loaded_data["fn_names"][idx]
-                        ]["env_kurtosis_z"]
-                    ),
-                    self._normalize(
-                        self.loaded_data["physical_data"][
-                            self.loaded_data["fn_names"][idx]
-                        ]["mag"]
-                    ),
-                ],
-                dtype=torch.float32,
-            )
+            features_vib_list = [
+                self._normalize(
+                    self.loaded_data["physical_data"][
+                        self.loaded_data["fn_names"][idx]
+                    ]["env_kurtosis_x"]
+                ),
+                self._normalize(
+                    self.loaded_data["physical_data"][
+                        self.loaded_data["fn_names"][idx]
+                    ]["env_kurtosis_y"]
+                ),
+                self._normalize(
+                    self.loaded_data["physical_data"][
+                        self.loaded_data["fn_names"][idx]
+                    ]["env_kurtosis_z"]
+                ),
+                self._normalize(
+                    self.loaded_data["physical_data"][
+                        self.loaded_data["fn_names"][idx]
+                    ]["mag"]
+                ),
+            ]
+            item["features_vib"] = torch.tensor(np.array(features_vib_list), dtype=torch.float32)
             item["spec_vib"] = torch.tensor(
                 self.loaded_data["spec_data"][self.loaded_data["fn_names"][idx]][
                     "spec_vib"
