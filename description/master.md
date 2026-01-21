@@ -35,7 +35,7 @@ The Smart Grinding project develops advanced machine learning models for real-ti
 - **Model Definition (`MyModels.py`)**: Contains the core PyTorch model architectures (e.g., GrindingPredictor, FeatureInterpreter).
 - **Data Loading (`MyDataset.py`)**: Handles all data loading logic, dataset construction, and batching. It abstracts the raw data access.
 - **Training Loop (`trainer.py`)**: Orchestrates the training process, including 10x10 Cross-Validation, loss calculation, and optimization.
-- **Accuracy Analysis (`postprocessing/post_accuracy.ipynb`)**: Notebook used to evaluate model performance and generate accuracy-related plots (e.g., MAE/MSE comparisons).
+- **Accuracy Analysis (`postprocessing/generate_accuracy_report.py`)**: Script used to evaluate model performance, generate accuracy-related plots, and produce summary reports.
 
 ### Output Deliverables
 1. **Prediction Models**: Robust models for $R_a$ estimation.
