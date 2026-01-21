@@ -89,11 +89,6 @@ def plot_panel_a(true_values, predictions, bdi_values, output_path):
     ax.plot(indices, predictions, 'r--', label='Predicted $R_a$', alpha=0.8, linewidth=1.5)
     
     # Background coloring based on BDI
-    # Note: Dataset BDI is normalized, but usually BDI > 1 is ductile. 
-    # In MyDataset, they are normalized. We assume higher values are ductile.
-    # Let's use the raw logic if possible, but here we use a threshold.
-    # Since they are normalized to [0, 1] in GrindingDataset, we might need to check the scale.
-    # However, for the plot visualization, we just show the contrast.
     threshold = np.median(bdi_values) 
     
     bdi_regime = bdi_values > threshold
@@ -135,7 +130,7 @@ def plot_panel_b(true_values, predictions, bdi_values, output_path):
     ax.plot(np.sort(bdi_values), p(np.sort(bdi_values)), "r--", alpha=0.8, linewidth=2)
     
     ax.set_xlabel('Brittle-Ductile Indicator (BDI)')
-    ax.set_ylabel('Absolute Error ($\\mu$m)')
+    ax.set_ylabel('Absolute Error ($\mu$m)')
     ax.set_title('Prediction Error Stability vs. BDI')
     ax.grid(True, linestyle=':', alpha=0.6)
     
@@ -155,9 +150,8 @@ def plot_panel_c(true_values, predictions, st_values, output_path):
     p = np.poly1d(z)
     ax.plot(np.sort(st_values), p(np.sort(st_values)), "r--", alpha=0.8, linewidth=2)
     
-    ax.set_xlabel('Thermal Severity ($S_t$)
-')
-    ax.set_ylabel('Absolute Error ($\\mu$m)')
+    ax.set_xlabel('Thermal Severity ($S_t$)')
+    ax.set_ylabel('Absolute Error ($\mu$m)')
     ax.set_title('Robustness under Thermal Loads')
     ax.grid(True, linestyle=':', alpha=0.6)
     
