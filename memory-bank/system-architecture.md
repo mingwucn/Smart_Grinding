@@ -16,13 +16,14 @@
    - Instantiates models from `MyModels.py`.
    - Executes the training loop, managing epochs, validation, and physics-informed loss calculation.
 6. **Evaluation (`postprocessing/`)**:
-   - Accuracy metrics.
-   - Plot generation for papers.
+   - Accuracy metrics and comparison plots (`post_accuracy.ipynb`).
+   - Physical regime analysis and plot generation (`generate_physical_regime_plots.py`).
 
 ## Core Components
 - **Data Handler (`MyDataset.py`)**: The single source of truth for loading and serving data to the model.
 - **Model Definitions (`MyModels.py`)**: Defines the neural network architectures (GRU-Attention, PA-TFT).
 - **Training Orchestrator (`trainer.py`)**: Manages the lifecycle of model training and validation.
+- **Accuracy Evaluator (`postprocessing/post_accuracy.ipynb`)**: Standardized notebook for generating performance metrics and accuracy plots.
 - **Physics Engine**: Calculates domain-specific indicators (BDI, $S_t$).
 - **Post-Processor**: Handles metric calculation and high-resolution visualization.
 

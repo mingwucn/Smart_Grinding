@@ -37,7 +37,7 @@ This project focuses on AI-driven monitoring and prediction for grinding process
 - Physics-informed losses (BDI, $S_t$) should be clearly integrated and logged.
 
 ### 3. Verification & Metrics
-- Evaluate using MAE and MSE across 10x10 Cross-Validation.
+- Evaluate using MAE and MSE across 10x10 Cross-Validation using `postprocessing/post_accuracy.ipynb`.
 - Generate standard plots: Prediction vs. Ground Truth (with BDI context), Error vs. BDI, Error vs. $S_t$.
 - All plots must be saved to the corresponding paper's `images/` folder.
 
