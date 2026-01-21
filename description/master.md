@@ -37,11 +37,13 @@ The Smart Grinding project develops advanced machine learning models for real-ti
 - **Training Loop (`trainer.py`)**: Orchestrates the training process, including 10x10 Cross-Validation, loss calculation, and optimization.
 - **Accuracy Analysis (`postprocessing/generate_accuracy_report.py`)**: Script used to evaluate model performance, generate accuracy-related plots, and produce summary reports.
 - **Physics Plotting (`postprocessing/generate_physical_regime_plots.py`)**: Generates high-fidelity time-series plots with physical regime context, supporting CUDA acceleration for full-dataset visualization.
+- **Prediction Archival (`postprocessing/generate_all_predictions.py`)**: Stores prediction results (labels, predictions, physical indicators) for all models and folds into the `lfs/predictions/` directory, supporting resume functionality.
 
 ### Output Deliverables
 1. **Prediction Models**: Robust models for $R_a$ estimation.
 2. **Research Manuscripts**: Publication-ready LaTeX documents for "Grinding Fusion" and "Contextual Grinding".
 3. **Visualization Suite**: Scripts for generating high-quality research plots.
+4. **Prediction Data Archive**: Comprehensive storage of model predictions across 10x10 Cross-Validation for offline analysis.
 
 ## Use Cases
 

@@ -17,13 +17,16 @@
    - Executes the training loop, managing epochs, validation, and physics-informed loss calculation.
 6. **Evaluation (`postprocessing/`)**:
    - Accuracy metrics and comparison plots (`generate_accuracy_report.py`).
-   - Physical regime analysis (`generate_physical_regime_plots.py`): Generates "Prediction vs. Ground Truth" plots overlaid with BDI regimes for all model types using CUDA acceleration.
+   - Physical regime analysis (`generate_physical_regime_plots.py`).
+7. **Archival (`postprocessing/generate_all_predictions.py`)**:
+   - Stores raw prediction data (labels, predictions, BDI, $S_t$) for all folds in `lfs/predictions/`.
 
 ## Core Components
 - **Data Handler (`MyDataset.py`)**: The single source of truth for loading and serving data to the model.
 - **Model Definitions (`MyModels.py`)**: Defines the neural network architectures (GRU-Attention, PA-TFT).
 - **Training Orchestrator (`trainer.py`)**: Manages the lifecycle of model training and validation.
 - **Accuracy Evaluator (`generate_accuracy_report.py`)**: Standardized script for generating performance metrics, accuracy plots, and summary reports.
+- **Prediction Archivist (`generate_all_predictions.py`)**: Handles the reliable storage of massive prediction datasets with resume capability.
 - **Physics Engine**: Calculates domain-specific indicators (BDI, $S_t$).
 - **Post-Processor**: Handles metric calculation and high-resolution visualization.
 

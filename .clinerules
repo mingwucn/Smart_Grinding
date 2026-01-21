@@ -39,6 +39,7 @@ This project focuses on AI-driven monitoring and prediction for grinding process
 ### 3. Verification & Metrics
 - Evaluate using MAE and MSE across 10x10 Cross-Validation using `postprocessing/generate_accuracy_report.py`.
 - Generate standard plots: Prediction vs. Ground Truth (with BDI context), Error vs. BDI, Error vs. $S_t$.
+- **Archival**: Store raw prediction results (labels, predictions) for all models/folds in `lfs/predictions/` using `generate_all_predictions.py` to support offline analysis.
 - All plots must be saved to the corresponding paper's `images/` folder.
 
 ### 4. Publication Support

@@ -14,6 +14,7 @@
 ## In Progress
 - [ ] Development of `postprocessing/` scripts for BDI-aware plots.
 - [ ] Refinement of SHAP analysis scripts.
+- [ ] Implementation of `generate_all_predictions.py` for comprehensive data archival in `lfs/predictions/`.
 
 ## Upcoming Tasks
 - [ ] Drafting the Results section for the "Grinding Fusion" paper.
