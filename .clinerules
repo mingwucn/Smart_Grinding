@@ -20,8 +20,14 @@ This project focuses on AI-driven monitoring and prediction for grinding process
 
 ## ⚙️ DEVELOPMENT WORKFLOW
 
+### 0. WSL MODE (CRITICAL)
+- **Always use WSL**: All shell commands must be executed through WSL (e.g., `wsl ls -a`, `wsl python3 ...`).
+- **Paths**: Use Linux-style paths (`/mnt/c/...` or relative `/`) when executing commands within WSL.
+- **Environment**: Ensure environment variables like `DATADIR` are exported within the WSL command context if needed.
+- **Conda Environment**: Always ensure the 'ai' conda environment is active when running Python scripts (e.g., `wsl bash -c "source ~/.bashrc && conda activate ai && python script.py"` or verify it is the default).
+
 ### 1. Data Handling
-- Use `GrindingData.py` for dataset preparation.
+- Use `MyDataset.py` for all data loading and dataset construction.
 - Support multiple input types: `ae_spec`, `ae_features`, `vib_spec`, `vib_features`, `pp` (physical parameters).
 - Ensure reproducibility by fixing seeds and documenting dataset splits.
 

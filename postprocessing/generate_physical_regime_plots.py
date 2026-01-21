@@ -172,7 +172,7 @@ def main():
     dataset = get_dataset(input_type="all", dataset_mode="classical")
     
     # 3. Generate predictions
-    predictions, true_values, bdi_values, st_values = get_predictions(model, dataset, num_samples=300)
+    predictions, true_values, bdi_values, st_values = get_predictions(model, dataset, num_samples=50)
     
     # 4. Generate plots
     plot_panel_a(true_values, predictions, bdi_values, os.path.join(image_dir, "phys_regime_time_series.png"))

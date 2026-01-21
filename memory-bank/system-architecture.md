@@ -9,21 +9,20 @@
 3. **Physics Integration (`Physical_informed.ipynb`)**:
    - Calculation of BDI and Thermal Severity ($S_t$).
    - Embedding physical parameters into the feature space.
-4. **Dataset Creation (`GrindingData.py`)**:
-   - Windowing and normalization.
-   - Multi-modal dataset assembly.
-5. **Training (`trainer.py`, `MyModels.py`)**:
-   - Model selection (GRU-Attention, PA-TFT).
-   - Training with combined MSE + Physics-Informed loss.
+4. **Dataset Construction (`MyDataset.py`)**:
+   - Encapsulates all data loading and preprocessing logic.
+   - Manages windowing, normalization, and batch creation.
+5. **Training (`trainer.py`)**:
+   - Instantiates models from `MyModels.py`.
+   - Executes the training loop, managing epochs, validation, and physics-informed loss calculation.
 6. **Evaluation (`postprocessing/`)**:
    - Accuracy metrics.
    - Plot generation for papers.
-7. **Explainability (`XAI_ModelWrapper.py`, `MyShap.py`)**:
-   - Feature importance and temporal attention analysis.
 
 ## Core Components
-- **Data Handler**: Manages loading and batching of multi-sensor data.
-- **Model Zoo**: Contains various architectures (Ablation study variants).
+- **Data Handler (`MyDataset.py`)**: The single source of truth for loading and serving data to the model.
+- **Model Definitions (`MyModels.py`)**: Defines the neural network architectures (GRU-Attention, PA-TFT).
+- **Training Orchestrator (`trainer.py`)**: Manages the lifecycle of model training and validation.
 - **Physics Engine**: Calculates domain-specific indicators (BDI, $S_t$).
 - **Post-Processor**: Handles metric calculation and high-resolution visualization.
 

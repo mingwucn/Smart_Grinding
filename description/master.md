@@ -31,6 +31,11 @@ The Smart Grinding project develops advanced machine learning models for real-ti
 2. **Feature Engineering**: Automated and manual extraction of grinding-specific features.
 3. **Deep Learning**: Training GRU-Attention and Physics-Aware Transformers on sequence data.
 
+### Codebase Structure
+- **Model Definition (`MyModels.py`)**: Contains the core PyTorch model architectures (e.g., GrindingPredictor, FeatureInterpreter).
+- **Data Loading (`MyDataset.py`)**: Handles all data loading logic, dataset construction, and batching. It abstracts the raw data access.
+- **Training Loop (`trainer.py`)**: Orchestrates the training process, including 10x10 Cross-Validation, loss calculation, and optimization.
+
 ### Output Deliverables
 1. **Prediction Models**: Robust models for $R_a$ estimation.
 2. **Research Manuscripts**: Publication-ready LaTeX documents for "Grinding Fusion" and "Contextual Grinding".
