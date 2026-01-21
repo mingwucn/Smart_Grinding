@@ -17,7 +17,7 @@
    - Executes the training loop, managing epochs, validation, and physics-informed loss calculation.
 6. **Evaluation (`postprocessing/`)**:
    - Accuracy metrics and comparison plots (`generate_accuracy_report.py`).
-   - Physical regime analysis (`generate_physical_regime_plots.py`): Generates "Prediction vs. Ground Truth" plots overlaid with BDI regimes, plus error analysis vs. BDI and $S_t$ for all model types.
+   - Physical regime analysis (`generate_physical_regime_plots.py`): Generates "Prediction vs. Ground Truth" plots overlaid with BDI regimes for all model types using CUDA acceleration.
 
 ## Core Components
 - **Data Handler (`MyDataset.py`)**: The single source of truth for loading and serving data to the model.
