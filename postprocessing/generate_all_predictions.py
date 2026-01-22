@@ -2,6 +2,7 @@ import sys
 import os
 import numpy as np
 import torch
+import gc
 from torch.utils.data import DataLoader
 import argparse
 from tqdm import tqdm
@@ -67,10 +68,12 @@ def load_model(model_type, fold, device="cpu"):
         print(f"Error loading model {model_type} fold {fold}: {e}")
         return None
 
-def get_predictions(model, dataset, device="cpu"):
+def get_predictions(model, dataset, device="cpu", batch_size=32):
     """Generate predictions for the dataset."""
     collate_fn = get_collate_fn(model.input_type)
-    dataloader = DataLoader(dataset, batch_size=128, shuffle=False, collate_fn=collate_fn, num_workers=4, pin_memory=True)
+    # Use smaller batch size for memory efficiency
+    dataloader = DataLoader(dataset, batch_size=batch_size, shuffle=False, 
+                           collate_fn=collate_fn, num_workers=0, pin_memory=False)
     
     predictions = []
     ground_truth = []
@@ -104,9 +107,9 @@ def get_predictions(model, dataset, device="cpu"):
                 bdi_values.extend(pp[:, 2])
             else:
                 # Fallback if no pp
-                batch_size = len(predictions) - len(st_values)
-                st_values.extend(np.zeros(batch_size))
-                bdi_values.extend(np.zeros(batch_size))
+                batch_size_current = len(predictions) - len(st_values)
+                st_values.extend(np.zeros(batch_size_current))
+                bdi_values.extend(np.zeros(batch_size_current))
             
     return np.array(predictions), np.array(ground_truth), np.array(bdi_values), np.array(st_values)
 
@@ -114,8 +117,32 @@ def main():
     parser = argparse.ArgumentParser(description="Generate and archive predictions for all models/folds.")
     parser.add_argument("--folds", type=int, default=100, help="Total number of folds (default: 100 for 10x10 CV)")
     parser.add_argument("--force", action="store_true", help="Force recalculation even if file exists")
+    parser.add_argument("--lazy", action="store_true", help="Use lazy loading mode to reduce memory usage")
+    parser.add_argument("--batch_size", type=int, default=32, help="Batch size for prediction (default: 32)")
+    parser.add_argument("--data_fraction", type=float, default=0.5, 
+                       help="Fraction of dataset to load (0.0 to 1.0). Default 0.5 (half data). Use 1.0 for all data.")
+    parser.add_argument("--total_chunks", type=int, default=4,
+                       help="Split dataset into N chunks for processing. Use with --chunk_index.")
+    parser.add_argument("--chunk_index", type=int, default=0,
+                       help="Index of chunk to process (0-based). Requires --total_chunks > 1.")
     args = parser.parse_args()
 
+    # Validate arguments
+    if args.data_fraction <= 0 or args.data_fraction > 1:
+        print(f"Error: data_fraction must be between 0 and 1, got {args.data_fraction}")
+        return
+    
+    if args.total_chunks < 1:
+        print(f"Error: total_chunks must be >= 1, got {args.total_chunks}")
+        return
+    
+    if args.chunk_index < 0 or args.chunk_index >= args.total_chunks:
+        print(f"Error: chunk_index must be between 0 and {args.total_chunks-1}, got {args.chunk_index}")
+        return
+    
+    if args.total_chunks > 1 and args.data_fraction < 1.0:
+        print("Warning: Both total_chunks > 1 and data_fraction < 1.0 specified. Using chunking mode.")
+    
     # Setup paths
     base_output_dir = os.path.join(project_root, "lfs", "predictions")
     os.makedirs(base_output_dir, exist_ok=True)
@@ -124,28 +151,39 @@ def main():
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     print(f"Using device: {device}")
     
-    # Cache dataset to avoid reloading for every fold if input_type is same?
-    # Actually, dataset depends on input_type. But 'all' dataset covers everything if loaded once?
-    # MyDataset loads based on input_type. Optimization: Load 'all' dataset once and subset?
-    # No, get_dataset returns a Dataset object that might have specific transforms.
-    # Safe bet is to load fresh for each model type, but keep it in memory if iterating folds for SAME model type.
-    # Actually, MyDataset loads ALL data into memory usually (unless 'chunked'/'ram'). 
-    # Let's instantiate dataset once per model_type.
+    # Choose dataset mode based on lazy flag
+    dataset_mode = "lazy" if args.lazy else "classical"
+    print(f"Using dataset mode: {dataset_mode}")
+    print(f"Using data fraction: {args.data_fraction}")
     
+    # Load the 'all' dataset once (contains all components)
+    # This is more memory efficient than loading different datasets for each model type
+    if args.total_chunks > 1:
+        print(f"\n=== Loading 'all' dataset chunk {args.chunk_index+1}/{args.total_chunks} ===")
+    else:
+        print(f"\n=== Loading 'all' dataset with {args.data_fraction*100:.1f}% of data ===")
+    
+    try:
+        print("Loading dataset with input_type='all'...")
+        dataset = get_dataset(
+            input_type='all', 
+            dataset_mode=dataset_mode, 
+            data_fraction=args.data_fraction,
+            chunk_index=args.chunk_index,
+            total_chunks=args.total_chunks
+        )
+        print(f"Dataset loaded with {len(dataset)} samples")
+    except Exception as e:
+        print(f"Failed to load dataset: {e}")
+        return
+    
+    # Process one model type at a time to minimize memory usage
     for model_type in ALLOWED_INPUT_TYPES:
         print(f"\n=== Processing Model Type: {model_type} ===")
         
         # Create output dir for this model type
         model_output_dir = os.path.join(base_output_dir, model_type)
         os.makedirs(model_output_dir, exist_ok=True)
-        
-        # Load dataset once for this model type
-        try:
-            print(f"Loading dataset for {model_type}...")
-            dataset = get_dataset(input_type=model_type, dataset_mode="classical")
-        except Exception as e:
-            print(f"Failed to load dataset for {model_type}: {e}")
-            continue
             
         # Iterate folds
         for fold in tqdm(range(args.folds), desc=f"Folds ({model_type})"):
@@ -161,9 +199,9 @@ def main():
                 # print(f"Checkpoint not found for fold {fold}")
                 continue
             
-            # Predict
+            # Predict with memory optimization
             try:
-                preds, ground_truth, bdi, st = get_predictions(model, dataset, device)
+                preds, ground_truth, bdi, st = get_predictions(model, dataset, device, batch_size=args.batch_size)
                 
                 # Save compressed
                 np.savez_compressed(
@@ -175,10 +213,22 @@ def main():
                     model_type=model_type,
                     fold=fold
                 )
+                
+                # Clear cache to free memory
+                if torch.cuda.is_available():
+                    torch.cuda.empty_cache()
+                gc.collect()
+                
             except Exception as e:
                 print(f"Error processing fold {fold}: {e}")
                 continue
-                
+        
+        # Clear cache between model types (but keep dataset)
+        if torch.cuda.is_available():
+            torch.cuda.empty_cache()
+        gc.collect()
+    
+    # Don't delete dataset here - it's used in the loop
     print("\nProcessing complete. Data archived in lfs/predictions/")
 
 if __name__ == "__main__":
