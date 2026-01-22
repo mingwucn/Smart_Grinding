@@ -60,7 +60,7 @@ def load_trained_model(model_type="ae_features", fold=0):
     
     # Load model weights using the custom load_state_dict (strict=False)
     try:
-        checkpoint = torch.load(model_path, map_location='cpu')
+        checkpoint = torch.load(model_path, map_location='cpu', weights_only=True)
         if 'model_state' in checkpoint:
             model.load_state_dict(checkpoint['model_state'])
         elif 'model_state_dict' in checkpoint:

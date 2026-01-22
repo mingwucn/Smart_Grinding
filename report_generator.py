@@ -244,7 +244,7 @@ def generate_xai_reports():
                 base_model = GrindingPredictor(interp=False, input_type=combo)
                 
                 # Load model state
-                checkpoint = torch.load(model_path, map_location=torch.device('cpu'))
+                checkpoint = torch.load(model_path, map_location=torch.device('cpu'), weights_only=True)
                 
                 # Handle different checkpoint formats
                 state_dict = None

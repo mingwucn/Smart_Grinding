@@ -319,7 +319,7 @@ def load_train_data(data_dir):
 
 def load_model(model_name, model):
     checkpoint_path = f"./lfs/weights/{model_name}.pt"
-    snapshot = torch.load(checkpoint_path, map_location=device)
+    snapshot = torch.load(checkpoint_path, map_location=device, weights_only=True)
     model.load_state_dict(snapshot["model_state_dict"])
     # optimizer.load_state_dict(snapshot['optimizer_state_dict'])
     epochs_run = snapshot["EPOCHS_RUN"]
@@ -1495,7 +1495,7 @@ class TrainerBase:
             str: A message indicating the training has resumed from a specific epoch.
         """
         if os.path.exists(self.checkpoint_path):
-            checkpoint = torch.load(self.checkpoint_path,map_location=self.device)
+            checkpoint = torch.load(self.checkpoint_path,map_location=self.device, weights_only=True)
             self.model.load_state_dict(checkpoint['model_state'])
             self.optimizer.load_state_dict(checkpoint['optimizer_state'])
             self.start_epoch = checkpoint['epoch'] + 1
@@ -2848,7 +2848,7 @@ class VideoClassificationDataset(Dataset):
 
         if self.hotload:
             # Load the video on the fly and ensure it is a tensor
-            video = torch.tensor(torch.load(self.video_files[video_idx]))  # Ensure it is a tensor
+            video = torch.tensor(torch.load(self.video_files[video_idx], weights_only=True))  # Ensure it is a tensor
         else:
             # Access the preloaded video
             video = self.videos[video_idx]

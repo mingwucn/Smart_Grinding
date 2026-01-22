@@ -61,7 +61,7 @@ def run_xai_analysis(args):
             print(f"Model not found for input type: {args.input_type}")
             return
         
-        checkpoint = torch.load(model_path, map_location=torch.device('cpu'))
+        checkpoint = torch.load(model_path, map_location=torch.device('cpu'), weights_only=True)
         
         # Try to load state dict with flexible key matching
         state_dict = checkpoint.get('model_state', checkpoint.get('state_dict', checkpoint))

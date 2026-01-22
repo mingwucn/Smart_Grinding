@@ -52,7 +52,7 @@ def load_model(model_type, fold, device="cpu"):
     
     try:
         model = GrindingPredictor(input_type=model_type)
-        checkpoint = torch.load(model_path, map_location='cpu')
+        checkpoint = torch.load(model_path, map_location='cpu', weights_only=True)
         
         if 'model_state' in checkpoint:
             model.load_state_dict(checkpoint['model_state'])

@@ -81,7 +81,7 @@ def debug_load_trained_model(model_type="ae_features", fold=0):
     
     # Load model weights with better error handling
     try:
-        checkpoint = torch.load(model_path, map_location='cpu')
+        checkpoint = torch.load(model_path, map_location='cpu', weights_only=True)
         print(f"Checkpoint keys: {list(checkpoint.keys())}")
         
         # Try different loading strategies
@@ -101,7 +101,7 @@ def debug_load_trained_model(model_type="ae_features", fold=0):
         
         # Try partial loading for architecture mismatches
         try:
-            checkpoint = torch.load(model_path, map_location='cpu')
+            checkpoint = torch.load(model_path, map_location='cpu', weights_only=True)
             if 'model_state' in checkpoint:
                 model_dict = model.state_dict()
                 pretrained_dict = {k: v for k, v in checkpoint['model_state'].items() 
