@@ -119,9 +119,9 @@ def main():
     parser.add_argument("--force", action="store_true", help="Force recalculation even if file exists")
     parser.add_argument("--lazy", action="store_true", help="Use lazy loading mode to reduce memory usage")
     parser.add_argument("--batch_size", type=int, default=32, help="Batch size for prediction (default: 32)")
-    parser.add_argument("--data_fraction", type=float, default=0.5, 
+    parser.add_argument("--data_fraction", type=float, default=1, 
                        help="Fraction of dataset to load (0.0 to 1.0). Default 0.5 (half data). Use 1.0 for all data.")
-    parser.add_argument("--total_chunks", type=int, default=4,
+    parser.add_argument("--total_chunks", type=int, default=2,
                        help="Split dataset into N chunks for processing. Use with --chunk_index.")
     parser.add_argument("--chunk_index", type=int, default=0,
                        help="Index of chunk to process (0-based). Requires --total_chunks > 1.")
